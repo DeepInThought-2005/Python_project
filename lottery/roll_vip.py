@@ -10,17 +10,13 @@ GAME_SOUND = pygame.mixer.Sound(os.path.join("sounds", "林海 - 欢沁(1).wav")
 
 price = {2: "Belt", 1: "GT2", -1:"Wiskey", 0:"Matepad", 3: "headset"}
 
-data = ["Ante", "王永杰", "Engel", "Michalle",
-		"刘仕勇", "周建生", "唐雷", "孔晓明",
-		"张军", "杨晶", "王博", "李阳",
-        "蔡军", "王玮", "胡少波", "陈学元", "陈松柏"]
+# name_data
+data = ["A", "B"]
 
 # data = ["才艺表演", "发红包", "少波跟随", "一饮而尽", "真心话大冒险"]
 
-images = ["Ante", "Wangyongjie", "Engel", "Michalle",
-		  "Liushiyong", "Zhoujiansheng", "Tanglei", "kongxiaomin",
-		  "Zhangjun", "Yangjing", "Wangbo", "Liyang",
-		  "Caijun", "Wangwei", "Hushaobo", "Chenxueyuan", "Chensongbai"]
+# img_data
+images = ["A", "B"]
 
 # images = ["Caiyibiaoyan", "Hongbao", "Shaobogeng", "Corona", "Zhenxinhua"]
 
