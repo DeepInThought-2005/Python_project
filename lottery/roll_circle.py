@@ -6,23 +6,16 @@ import pygame
 pygame.mixer.init()
 import os
 
-jiejiu = """
-	借 酒 消 愁 愁 更 愁!
-"""
+GAME_SOUND = pygame.mixer.Sound(os.path.join("sounds", "anysound.wav"))
 
-GAME_SOUND = pygame.mixer.Sound(os.path.join("sounds", "林海 - 欢沁(1).wav"))
-
+# name of imgs saved in a dict
 price = {2: "Belt", 1: "GT2", -1:"Wiskey", -2:"gotdrunk", 0:"Matepad", 3: "headset"}
 
-data = ["Ante","蔡军","陈松柏","陈学元","Engel","胡少波","孔晓明","刘仕勇","李阳","Michelle",
-		"唐雷","王博","王玮","王永杰","杨晶","周建生","张军"]
+# names which will be shown
+data = ["A", "B", "C", "D"] # ...
 
-# data = ["才艺表演", "发红包", "少波跟随", "一饮而尽", "真心话大冒险"]
-
-images = ["Ante","Caijun","Chensongbai","Chenxueyuan","Engel","Hushaobo","kongxiaomin","Liushiyong","Liyang","Michalle",
-"Tanglei","Wangbo","Wangwei","Wangyongjie", "Yangjing","Zhoujiansheng", "Zhangjun"]
-
-# images = ["Caiyibiaoyan", "Hongbao", "Shaobogeng", "Corona", "Zhenxinhua"]
+# img names you can load
+images = ["A", "B", "C", "D"] # ...
 
 
 r = lambda: random.randint(0,255)
@@ -184,13 +177,6 @@ class Show:
 			self.al_rotate_times = 0 # already_rotate_tims
 			self.is_going = True
 			rotate_times = random.randint(150, 250)
-			print(rotate_times)
-			if self.times >= 12 and self.times < 16:
-				self.sim_winner = self.get_winner(rotate_times)
-				if self.sim_winner != -1:
-					if self.data[self.sim_winner] == "杨晶" or self.data[self.sim_winner] == "Michelle":
-						print("los")
-						rotate_times += 8
 			if len(self.data) != len(data):
 				self.circle = []
 				self.create_c()
@@ -198,6 +184,9 @@ class Show:
 			self.roll(rotate_times)
 
 	def get_winner(self, r_t):
+		"""
+		return the index of the winner, to cheat someone ；）
+		"""
 		step = self.step
 		al_rotate_times = self.al_rotate_times
 		circle = []
