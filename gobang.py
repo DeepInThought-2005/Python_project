@@ -4,7 +4,7 @@ pygame.font.init()
 
 WIDTH = 900
 HEIGHT = 900
-COLS = 20
+COLS = 10
 W = WIDTH // COLS
 
 WHITE = (255, 255, 255)
@@ -32,10 +32,10 @@ class Shape:
         # 1/8
         if self.revealed:
             if self.color == 'black':
-                pygame.draw.circle(win, BLACK, (self.x * W + W // 2, self.y * W + W // 2), W // 2 // 16 * 15)
+                pygame.draw.circle(win, BLACK, (self.x * W + W // 2 + 1, self.y * W + W // 2 + 1), W // 2 // 20 * 19)
 
             else:
-                pygame.draw.circle(win, BLACK, (self.x * W + W // 2, self.y * W + W // 2), W // 2 // 16 * 15, 3)
+                pygame.draw.circle(win, BLACK, (self.x * W + W // 2 + 1, self.y * W + W // 2 + 1), W // 2 // 20 * 19, 3)
 
 
 def draw_grid(win):
@@ -53,7 +53,7 @@ def draw_window(win, board):
 
 # vertical
 def check_v(color, col, row, board):
-    if row + 5 < COLS:
+    if row + 5 <= COLS:
         for j in range(standard_win):
             if board[col][row + j].color != color:
                 return False
@@ -61,7 +61,7 @@ def check_v(color, col, row, board):
 
 # horizontal
 def check_h(color, col, row, board):
-    if col + 5 < COLS:
+    if col + 5 <= COLS:
         for i in range(standard_win):
             if board[col + i][row].color != color:
                 return False
@@ -69,7 +69,7 @@ def check_h(color, col, row, board):
 
 # diagonal left_up to right_down
 def check_drd(color, col, row, board):
-    if col + 5 < COLS and row + 5 < COLS:
+    if col + 5 <= COLS and row + 5 <= COLS:
         for i in range(standard_win):
             for j in range(standard_win):
                 if i == j and board[col + i][row + j].color != color:
@@ -142,7 +142,6 @@ def main():
                     if played_moves:
                         i, j, color = played_moves.pop()
                         returned_moves.append((i, j, color))
-                        print(len(returned_moves), len(played_moves))
                         board[i][j].color = ""
                         board[i][j].revealed = False
                         if turn == 'black':
@@ -154,7 +153,6 @@ def main():
                     if returned_moves:
                         i, j, color = returned_moves.pop()
                         played_moves.append((i, j, color))
-                        print(len(returned_moves), len(played_moves))
                         board[i][j].color = color
                         board[i][j].revealed = True
                         if turn == 'black':
