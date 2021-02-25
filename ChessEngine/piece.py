@@ -286,7 +286,6 @@ class King(Piece):
         self.castled = False
 
     def is_move_castle(self, x, y):
-        print(self.col, x, self.row, y)
         result = None
         if self.row == y:
             if self.col - x > 0:
@@ -403,22 +402,27 @@ class King(Piece):
         if not self.castled:
             if self.color == BLACK:
                 if board[7][0] != 0:
-                    if board[5][0] == 0 and board[6][0] == 0 and not board[7][0].castled:
-                        moves.append((5, 0))
-                        moves.append((6, 0))
+                    if isinstance(board[7][0].castled, Rook) and board[7][0].color == self.color:
+                        if board[5][0] == 0 and board[6][0] == 0 and not board[7][0].castled:
+                            moves.append((5, 0))
+                            moves.append((6, 0))
                 if board[0][0] != 0:
-                    if board[1][0] == 0 and board[2][0] == 0 and board[3][0] == 0 and not board[0][0].castled:
-                        moves.append((2, 0))
-                        moves.append((3, 0))
+                    if isinstance(board[0][0].castled, Rook) and board[0][0].color == self.color:
+                        if board[1][0] == 0 and board[2][0] == 0 and board[3][0] == 0 and not board[0][0].castled:
+                            moves.append((2, 0))
+                            moves.append((3, 0))
             else:
                 if board[7][7] != 0:
-                    if board[5][7] == 0 and board[6][7] == 0 and not board[7][7].castled:
-                        moves.append((5, 7))
-                        moves.append((6, 7))
+                    if isinstance(board[7][7].castled, Rook) and board[7][7].color == self.color:
+                        if board[5][7] == 0 and board[6][7] == 0 and not board[7][7].castled:
+                            moves.append((5, 7))
+                            moves.append((6, 7))
+
                 if board[0][7] != 0:
-                    if board[1][7] == 0 and board[2][7] == 0 and board[3][7] == 0 and not board[0][7].castled:
-                        moves.append((2, 7))
-                        moves.append((3, 7))
+                    if isinstance(board[0][7].castled, Rook) and board[0][7].color == self.color:
+                        if board[1][7] == 0 and board[2][7] == 0 and board[3][7] == 0 and not board[0][7].castled:
+                            moves.append((2, 7))
+                            moves.append((3, 7))
 
 
 

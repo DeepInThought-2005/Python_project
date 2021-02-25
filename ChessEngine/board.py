@@ -36,7 +36,7 @@ class Board:
     def checkmate(self, turn):
         danger_moves = self.get_danger_moves(turn)
         checkers = self.get_checkers(turn)
-        defend_moves = self.get_danger_moves(self.change_turn(turn), king_moves=False)
+        defend_moves = self.get_danger_moves(self.change_turn(turn), pawn_moves=True)
         # print(defend_moves)
         valid_king_moves = []
         for i in range(8):
@@ -54,9 +54,12 @@ class Board:
                     return False
 
             for checker in checkers:
+                for move in defend_moves:
+                    if move in self.board[checker[0]][checker[1]].get_danger_moves(self.board):
+                        if checker not in valid_king_moves:
+                            print("False2")
+                            return False
                 if checker in defend_moves:
-                    print(defend_moves)
-                    print("False2")
                     return False
 
             return True
@@ -85,7 +88,6 @@ class Board:
                     if turn != self.board[i][j].color:
                         king_pos = (i, j)
 
-        moves = []
         checkers = []
         for i in range(8):
             for j in range(8):
@@ -99,16 +101,19 @@ class Board:
     def draw(self, win):
         for i in range(8):
             for j in range(8):
+                color = ()
                 if i % 2 == 0:
                     if j % 2 != 0:
-                        pygame.draw.rect(win, (119, 148, 85), (j * W, i * W, W, W))
+                        color = green
                     if j % 2 == 0:
-                        pygame.draw.rect(win, (235, 235, 208), (j * W, i * W, W, W))
+                        color = white
                 else:
                     if j % 2 == 0:
-                        pygame.draw.rect(win, (119, 148, 85), (j * W, i * W, W, W))
+                        color = green
                     if j % 2 != 0:
-                        pygame.draw.rect(win, (235, 235, 208), (j * W, i * W, W, W))
+                        color = white
+
+                pygame.draw.rect(win, color, (j * W, i * W, W, W))
 
 
     def generate_board(self):
@@ -136,19 +141,20 @@ class Board:
         for i in range(8):
             self.board[i][1] = Pawn(i, 1, BLACK, 'P')
 
-    def get_danger_moves(self, turn, king_moves=True):
+    def get_danger_moves(self, turn, pawn_moves=False):
         moves = []
         for i in range(8):
             for j in range(8):
                 if self.board[i][j] != 0:
                     if self.board[i][j].color == turn:
-                        if king_moves:
-                            if not isinstance(self.board[i][j], King):
-                                for move in self.board[i][j].get_danger_moves(self.board):
+                        if pawn_moves:
+                            if isinstance(self.board[i][j], Pawn):
+                                for move in self.board[i][j].get_valid_moves(self.board):
                                     moves.append(move)
                         else:
                             for move in self.board[i][j].get_danger_moves(self.board):
-                                    moves.append(move)
+                                moves.append(move)
+
 
         return moves
 

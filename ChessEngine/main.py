@@ -1,11 +1,31 @@
 import pygame
 from constants import *
 from board import *
+pygame.font.init()
 
 
-def draw_window(win, board, valid_moves, turn):
+def draw_window(win, board, valid_moves, turn, marked_pos):
     board.draw(win)
     board.draw_valid_moves(win, valid_moves, board.board, turn)
+
+    # draw mark
+    for i in range(8):
+        for j in range(8):
+            if marked_pos[i][j] == 1:
+                color = ()
+                if i % 2 == 0:
+                    if j % 2 != 0:
+                        color = dark_red
+                    if j % 2 == 0:
+                        color = hell_red
+                else:
+                    if j % 2 == 0:
+                        color = dark_red
+                    if j % 2 != 0:
+                        color = hell_red
+                pygame.draw.rect(win, color, (i * W, j * W, W, W))
+
+    # Two times for loop to solve the layer problem!
     for i in range(8):
         for j in range(8):
             if board.board[i][j] != 0:
@@ -34,12 +54,36 @@ def change_turn(turn):
     return turn
 
 
+def onclick(x, y, m_x, m_y):
+    if m_x > x and m_x < x + W and m_y > y and m_y < y + W:
+        return True
+    return False
+
+def game_over(win, turn, board):
+    win.fill((255, 255, 255))
+    board.set_every_pos()
+    # board.set_every_coord()
+    board.unselectall()
+
+    # draw the board again
+    board.draw(win)
+    for i in range(8):
+        for j in range(8):
+            if board.board[i][j] != 0:
+                board.board[i][j].draw(win)
+
+    font = pygame.font.SysFont("times", 100)
+    text = font.render(turn + ' checkmates!', 1, red)
+    win.blit(text, (WIDTH // 2 - text.get_width() // 2, HEIGHT // 2 - text.get_height() // 2))
+    pygame.display.update()
+
 def main():
     win = pygame.display.set_mode((WIDTH, HEIGHT))
     pygame.display.set_caption("ChessL")
     board = Board()
     clock = pygame.time.Clock()
     selected_pos = ()
+    marked_pos = [[0] * 8 for _ in range(8)]
     valid_moves = []
     played_moves = []
     returned_moves = []
@@ -48,7 +92,7 @@ def main():
     run = True
     while run:
         clock.tick(60)
-        draw_window(win, board, valid_moves, turn)
+        draw_window(win, board, valid_moves, turn, marked_pos)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -70,7 +114,6 @@ def main():
                      zug = returned_moves.pop()
                      end, start = zug[0], zug[1]
                      played_moves.append(zug)
-                     print(start, end)
                      # board.print_board()
                      board.move(start, end)
                      turn = change_turn(turn)
@@ -91,6 +134,15 @@ def main():
                                         for move in board.board[i][j].get_valid_moves(board.board):
                                             if board.is_legal_move(turn, (selected_pos[0], selected_pos[1]), move):
                                                 valid_moves.append(move)
+                elif pygame.mouse.get_pressed()[2]:
+                    for j in range(8):
+                        for i in range(8):
+                            m_x, m_y = pygame.mouse.get_pos()
+                            if onclick(i * W, j * W, m_x, m_y):
+                                if marked_pos[i][j] == 1:
+                                    marked_pos[i][j] = 0
+                                else:
+                                    marked_pos[i][j] = 1
 
 
             if event.type == pygame.MOUSEBUTTONUP:
@@ -157,9 +209,13 @@ def main():
                                         print("white checks!")
                                     if board.checkmate(BLACK):
                                         print("black checkmate!")
+                                        game_over(win, turn, board)
+                                        pygame.time.delay(3000)
                                         main()
                                     if board.checkmate(WHITE):
                                         print("white checkmate!")
+                                        game_over(win, turn, board)
+                                        pygame.time.delay(3000)
                                         main()
                                     print()
                                     board.print_board()

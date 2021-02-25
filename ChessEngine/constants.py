@@ -8,10 +8,15 @@ import os
 WIDTH = 800
 HEIGHT = 800
 W = 100
+red = (255, 0, 0)
+hell_red = (255, 50, 60)
+dark_red = (255, 0, 10)
+green = (119, 148, 85)
+white = (235, 235, 208)
 
 # GAME CONSTANTS
-BLACK = 'b'
-WHITE = 'w'
+BLACK = 'black'
+WHITE = 'white'
 O_O = 'o-o'
 O_O_O = 'o-o-o'
 
