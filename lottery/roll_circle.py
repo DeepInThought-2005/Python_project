@@ -6,20 +6,15 @@ import pygame
 pygame.mixer.init()
 import os
 
-jiejiu = """
-	借 酒 消 愁 愁 更 愁!
-"""
-
 GAME_SOUND = pygame.mixer.Sound(os.path.join("sounds", "林海 - 欢沁(1).wav"))
 
-# name of prices daved in a dictionary
 price = {2: "Belt", 1: "GT2", -1:"Wiskey", -2:"gotdrunk", 0:"Matepad", 3: "headset"}
 
-# name of people who join the lottery
-data = ["A", "B", "C", "D"] # ...
+# name of the person
+data = ["A", "B", "C", "D"]
 
-# images for the people 
-images = ["A", "B", "C", "D"] # ...
+# image of the person
+images = ["A", "B", "C", "D"]
 
 
 r = lambda: random.randint(0,255)
@@ -184,6 +179,10 @@ class Show:
 			print(rotate_times)
 			if self.times >= 12 and self.times < 16:
 				self.sim_winner = self.get_winner(rotate_times)
+				if self.sim_winner != -1:
+					# if self.data[self.sim_winner] == "name1" or self.data[self.sim_winner] == "name2":
+						# print("los")
+						# rotate_times += 8
 			if len(self.data) != len(data):
 				self.circle = []
 				self.create_c()
