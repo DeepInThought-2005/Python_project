@@ -11,6 +11,6 @@ There are
 4. Gobang(come from Tic Tac Toe), with Undo Redo, pretty cool!
 5. Flappybird (Very very object oriented programming, it made a lot of fun for me by making this game!)
 7. !!! Chess Engine !!!
-    - Every rules but en passant in chess are programmed in!
-    - Able to castle, to move with drag & drop, mark with right click, but not arrow!
+    - Every rules but en passant in chess are programmed in(include check, checkmate, move restiction and so on)!
+    - Able to castle; to move with drag & drop; mark with right click, but not arrow; load fen!
     - not abled: en passant, undo redo moves, promotion(but function already wrote) !
