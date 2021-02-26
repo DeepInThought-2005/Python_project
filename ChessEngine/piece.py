@@ -283,7 +283,8 @@ class Queen(Piece):
 class King(Piece):
     def __init__(self, col, row, color, sign):
         super().__init__(col, row, color, sign)
-        self.castled = False
+        self.s_castled = False # o-o
+        self.l_castled = False # o-o-o
 
     def is_move_castle(self, x, y):
         result = None
@@ -399,33 +400,30 @@ class King(Piece):
                 moves.append((i + 1, j))
 
         # CASTLES
-        if not self.castled:
-            print("not castled")
-            if self.color == BLACK:
+        if self.color == BLACK:
+            if not self.s_castled:
                 if isinstance(board[7][0], Rook):
                     if not board[7][0].castled and board[7][0].color == self.color:
                         if board[5][0] == 0 and board[6][0] == 0 and not board[7][0].castled:
                             moves.append((5, 0))
                             moves.append((6, 0))
-
+            if not self.l_castled:
                 if isinstance(board[0][0], Rook):
                     if not board[0][0].castled and board[0][0].color == self.color:
                         if board[1][0] == 0 and board[2][0] == 0 and board[3][0] == 0 and not board[0][0].castled:
                             moves.append((2, 0))
                             moves.append((3, 0))
-            else:
-                print("white")
+        else:
+            if not self.s_castled:
                 if isinstance(board[7][7], Rook):
                     if not board[7][7].castled and board[7][7].color == self.color:
                         if board[5][7] == 0 and board[6][7] == 0 and not board[7][7].castled:
-                            print("o-o")
                             moves.append((5, 7))
                             moves.append((6, 7))
-
+            if not self.l_castled:
                 if isinstance(board[0][7], Rook):
                     if not board[0][7].castled and board[0][7].color == self.color:
                         if board[1][7] == 0 and board[2][7] == 0 and board[3][7] == 0 and not board[0][7].castled:
-                            print("o-o-o")
                             moves.append((2, 7))
                             moves.append((3, 7))
         return moves

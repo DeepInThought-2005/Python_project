@@ -4,9 +4,72 @@ from constants import *
 
 
 class Board:
-    def __init__(self):
+    def __init__(self, fen=""):
         self.board = [[0] * 8 for _ in range(8)]
-        self.generate_board()
+        self.turn = WHITE
+        if fen:
+            self.load_FEN(fen)
+        else:
+            self.generate_board()
+
+    def load_FEN(self, fen):
+        fen = fen.replace(' ', '')
+        print(fen)
+        self.board = [[0] * 8 for _ in range(8)]
+        i = -1
+        j = 0
+        for k, x in enumerate(fen):
+            if x == 'Q':
+                i += 1
+                self.board[i][j] = Queen(i, j, WHITE, "Q")
+            elif x == 'K':
+                i += 1
+                self.board[i][j] = King(i, j, WHITE, "K")
+            elif x == 'B':
+                i += 1
+                self.board[i][j] = Bishop(i, j, WHITE, "B")
+            elif x == 'N':
+                i += 1
+                self.board[i][j] = Knight(i, j, WHITE, "N")
+            elif x == 'R':
+                i += 1
+                self.board[i][j] = Rook(i, j, WHITE, "R")
+            elif x == 'P':
+                i += 1
+                self.board[i][j] = Pawn(i, j, WHITE, "P")
+            elif x == 'q':
+                i += 1
+                self.board[i][j] = Queen(i, j, BLACK, "Q")
+            elif x == 'k':
+                i += 1
+                self.board[i][j] = King(i, j, BLACK, "K")
+            elif x == 'b':
+                i += 1
+                self.board[i][j] = Bishop(i, j, BLACK, "B")
+            elif x == 'n':
+                i += 1
+                self.board[i][j] = Knight(i, j, BLACK, "N")
+            elif x == 'r':
+                i += 1
+                self.board[i][j] = Rook(i, j, BLACK, "R")
+            elif x == 'p':
+                i += 1
+                self.board[i][j] = Pawn(i, j, BLACK, "P")
+            elif x == '/':
+                j += 1
+                i = -1
+            else:
+                i += int(x)
+
+            if i == 7 and j == 7:
+                print(self.turn, fen[k + 1])
+                if fen[k + 1] == 'b':
+                    self.turn = BLACK
+                else:
+                    self.turn = WHITE
+                break
+
+
 
     # def flip(self):
     #     tboard = self.board[:]
@@ -49,22 +112,16 @@ class Board:
         if self.check(turn):
             for move in valid_king_moves:
                 if move not in danger_moves:
-                    print("False1")
                     return False
 
             for checker in checkers:
                 for move in defend_moves:
                     if move in self.board[checker[0]][checker[1]].get_danger_moves(self.board):
                         if checker not in valid_king_moves:
-                            print("False2")
                             return False
 
                 if checker in defend_moves:
-                    if (6, 0) in defend_moves:
-                        print("nono")
                     return False
-                else:
-                    print(defend_moves)
 
             return True
 
@@ -184,6 +241,7 @@ class Board:
         tboard[pos1[0]][pos1[1]].change_pos(pos2)
         self.board[pos2[0]][pos2[1]], self.board[pos1[0]][pos1[1]] = self.board[pos1[0]][pos1[1]], 0
         self.board = tboard
+        self.set_every_pos()
         if castles == O_O:
             return O_O
         elif castles == O_O_O:
