@@ -43,6 +43,13 @@ class Piece:
         self.color = color
         self.selected = False
 
+    def change_turn(self, turn):
+        if turn == BLACK:
+            turn = WHITE
+        else:
+            turn = BLACK
+        return turn
+
     def change_pos(self, end):
         self.col = end[0]
         self.row = end[1]
@@ -73,6 +80,7 @@ class Piece:
 class Queen(Piece):
 
     def get_danger_moves(self, board):
+        board = board.board
         moves = []
         i = self.col
         j = self.row
@@ -170,6 +178,7 @@ class Queen(Piece):
 
 
     def get_valid_moves(self, board):
+        board = board.board
         moves = []
         i = self.col
         j = self.row
@@ -298,6 +307,7 @@ class King(Piece):
 
 
     def get_danger_moves(self, board):
+        board = board.board
         i = self.col
         j = self.row
 
@@ -346,6 +356,7 @@ class King(Piece):
         return moves
 
     def get_valid_moves(self, board):
+        tboard = board.board
         i = self.col
         j = self.row
 
@@ -354,83 +365,85 @@ class King(Piece):
         if j > 0:
             # TOP LEFT
             if i > 0:
-                p = board[i - 1][j - 1]
+                p = tboard[i - 1][j - 1]
                 if p == 0 or p.color != self.color:
                     moves.append((i - 1, j - 1))
 
             # TOP MIDDLE
-            p = board[i][j - 1]
+            p = tboard[i][j - 1]
             if p == 0 or p.color != self.color:
                 moves.append((i, j - 1))
 
             # TOP RIGHT
             if i < 7:
-                p = board[i + 1][j - 1]
+                p = tboard[i + 1][j - 1]
                 if p == 0 or p.color != self.color:
                     moves.append((i + 1, j - 1))
 
         if j < 7:
             # BOTTOM LEFT
             if i > 0:
-                p = board[i - 1][j + 1]
+                p = tboard[i - 1][j + 1]
                 if p == 0 or p.color != self.color:
                     moves.append((i - 1, j + 1))
 
             # BOTTOM MODDLE
-            p = board[i][j + 1]
+            p = tboard[i][j + 1]
             if p == 0 or p.color != self.color:
                 moves.append((i, j + 1))
 
             # BOTTOM RIGHT
             if i < 7:
-                p = board[i + 1][j + 1]
+                p = tboard[i + 1][j + 1]
                 if p == 0 or p.color != self.color:
                     moves.append((i + 1, j + 1))
 
         # LEFT
         if i > 0:
-            p = board[i - 1][j]
+            p = tboard[i - 1][j]
             if p == 0 or p.color != self.color:
                 moves.append((i - 1, j))
 
         # RIGHT
         if i < 7:
-            p = board[i + 1][j]
+            p = tboard[i + 1][j]
             if p == 0 or p.color != self.color:
                 moves.append((i + 1, j))
 
         # CASTLES
         if self.color == BLACK:
             if not self.s_castled:
-                if isinstance(board[7][0], Rook):
-                    if not board[7][0].castled and board[7][0].color == self.color:
-                        if board[5][0] == 0 and board[6][0] == 0 and not board[7][0].castled:
+                if isinstance(tboard[7][0], Rook):
+                    if not tboard[7][0].castled and tboard[7][0].color == self.color:
+                        if tboard[5][0] == 0 and tboard[6][0] == 0 and not tboard[7][0].castled:
                             moves.append((5, 0))
                             moves.append((6, 0))
             if not self.l_castled:
-                if isinstance(board[0][0], Rook):
-                    if not board[0][0].castled and board[0][0].color == self.color:
-                        if board[1][0] == 0 and board[2][0] == 0 and board[3][0] == 0 and not board[0][0].castled:
+                if isinstance(tboard[0][0], Rook):
+                    if not tboard[0][0].castled and tboard[0][0].color == self.color:
+                        if tboard[1][0] == 0 and tboard[2][0] == 0 and tboard[3][0] == 0 and not tboard[0][0].castled:
                             moves.append((2, 0))
                             moves.append((3, 0))
         else:
-            if not self.s_castled:
-                if isinstance(board[7][7], Rook):
-                    if not board[7][7].castled and board[7][7].color == self.color:
-                        if board[5][7] == 0 and board[6][7] == 0 and not board[7][7].castled:
-                            moves.append((5, 7))
-                            moves.append((6, 7))
-            if not self.l_castled:
-                if isinstance(board[0][7], Rook):
-                    if not board[0][7].castled and board[0][7].color == self.color:
-                        if board[1][7] == 0 and board[2][7] == 0 and board[3][7] == 0 and not board[0][7].castled:
-                            moves.append((2, 7))
-                            moves.append((3, 7))
+            if not board.check(self.change_turn(self.color)):
+                if not self.s_castled:
+                    if isinstance(tboard[7][7], Rook):
+                        if not tboard[7][7].castled and tboard[7][7].color == self.color:
+                            if tboard[5][7] == 0 and tboard[6][7] == 0 and not tboard[7][7].castled:
+                                moves.append((5, 7))
+                                moves.append((6, 7))
+                if not self.l_castled:
+                    if isinstance(tboard[0][7], Rook):
+                        if not tboard[0][7].castled and tboard[0][7].color == self.color:
+                            if tboard[1][7] == 0 and tboard[2][7] == 0 and tboard[3][7] == 0 and not tboard[0][7].castled:
+                                moves.append((2, 7))
+                                moves.append((3, 7))
         return moves
 
 
 class Bishop(Piece):
     def get_danger_moves(self, board):
+        board = board.board
         moves = []
         i = self.col
         j = self.row
@@ -489,6 +502,7 @@ class Bishop(Piece):
         return moves
 
     def get_valid_moves(self, board):
+        board = board.board
         moves = []
         i = self.col
         j = self.row
@@ -557,6 +571,7 @@ class Bishop(Piece):
 class Knight(Piece):
 
     def get_danger_moves(self, board):
+        board = board.board
         i = self.col
         j = self.row
 
@@ -606,6 +621,7 @@ class Knight(Piece):
 
 
     def get_valid_moves(self, board):
+        board = board.board
         i = self.col
         j = self.row
 
@@ -667,6 +683,7 @@ class Rook(Piece):
         self.castled = False
 
     def get_danger_moves(self, board):
+        board = board.board
         moves = []
         i, j = self.col, self.row
         # UP
@@ -708,6 +725,7 @@ class Rook(Piece):
         return moves
 
     def get_valid_moves(self, board):
+        board = board.board
         moves = []
         i, j = self.col, self.row
         # UP
@@ -774,6 +792,7 @@ class Pawn(Piece):
         self.img = pygame.transform.scale(self.img, (W, W))
     
     def get_danger_moves(self, board):
+        board = board.board
         moves = []
         i, j = self.col, self.row
         if self.color == BLACK:
@@ -796,6 +815,7 @@ class Pawn(Piece):
 
 
     def get_valid_moves(self, board):
+        board = board.board
         moves = []
         i, j = self.col, self.row
         if self.color == BLACK:

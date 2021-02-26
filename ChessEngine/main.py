@@ -3,6 +3,7 @@ from constants import *
 from board import *
 pygame.font.init()
 
+a_cool_position = "5B1k/1R6/5p1K/1n1r3p/8/8/8/5b2 w"
 
 def draw_window(win, board, valid_moves, turn, marked_pos):
     board.draw(win)
@@ -83,7 +84,7 @@ def game_over(win, turn, board):
 def main():
     win = pygame.display.set_mode((WIDTH, HEIGHT))
     pygame.display.set_caption("ChessL")
-    board = Board(fen="5B1k/1R6/5p1K/1n1r3p/8/8/8/5b2 w")
+    board = Board(fen="")
     clock = pygame.time.Clock()
     selected_pos = ()
     marked_pos = [[0] * 8 for _ in range(8)]
@@ -134,7 +135,7 @@ def main():
                                     board.board[i][j].selected = True
                                     selected_pos = (i, j)
                                     if board.board[selected_pos[0]][selected_pos[1]].color == turn:
-                                        for move in board.board[i][j].get_valid_moves(board.board):
+                                        for move in board.board[i][j].get_valid_moves(board):
                                             if board.is_legal_move(turn, (selected_pos[0], selected_pos[1]), move):
                                                 valid_moves.append(move)
 

@@ -106,7 +106,7 @@ class Board:
             for j in range(8):
                 if isinstance(self.board[i][j], King):
                     if turn != self.board[i][j].color:
-                        for move in self.board[i][j].get_valid_moves(self.board):
+                        for move in self.board[i][j].get_valid_moves(self):
                             valid_king_moves.append(move)
 
         if self.check(turn):
@@ -152,7 +152,7 @@ class Board:
             for j in range(8):
                 if self.board[i][j] != 0:
                     if self.board[i][j].color == turn:
-                        if king_pos in self.board[i][j].get_danger_moves(self.board):
+                        if king_pos in self.board[i][j].get_danger_moves(self):
                             checkers.append((i, j))
 
         return checkers
@@ -208,15 +208,15 @@ class Board:
                     if self.board[i][j].color == turn:
                         if for_checkmate:
                             if isinstance(self.board[i][j], Pawn):
-                                for move in self.board[i][j].get_valid_moves(self.board):
+                                for move in self.board[i][j].get_valid_moves(self):
                                     moves.append(move)
                             else:
                                 if not isinstance(self.board[i][j], King):
-                                    for move in self.board[i][j].get_danger_moves(self.board):
+                                    for move in self.board[i][j].get_danger_moves(self):
                                         moves.append(move)
 
                         if not for_checkmate:
-                            for move in self.board[i][j].get_danger_moves(self.board):
+                            for move in self.board[i][j].get_danger_moves(self):
                                 moves.append(move)
 
 
@@ -291,4 +291,4 @@ class Board:
                     if turn != board[move[0]][move[1]].color:
                         pygame.draw.circle(win, (128, 128, 128), (move[0] * W + W // 2, move[1] * W + W // 2), W // 2, 8)
 
-    
+
