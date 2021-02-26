@@ -59,6 +59,7 @@ def onclick(x, y, m_x, m_y):
         return True
     return False
 
+
 def game_over(win, turn, board):
     turn = change_turn(turn)
     win.fill((255, 255, 255))
@@ -86,8 +87,10 @@ def main():
     selected_pos = ()
     marked_pos = [[0] * 8 for _ in range(8)]
     valid_moves = []
+
     played_moves = []
     returned_moves = []
+
     seleceted = False
     turn = WHITE
     run = True
@@ -112,14 +115,12 @@ def main():
 
                 if event.key == pygame.K_RIGHT:
                     if returned_moves:
-                     zug = returned_moves.pop()
-                     end, start = zug[0], zug[1]
-                     played_moves.append(zug)
-                     # board.print_board()
-                     board.move(start, end)
-                     turn = change_turn(turn)
-
-
+                        zug = returned_moves.pop()
+                        end, start = zug[0], zug[1]
+                        played_moves.append(zug)
+                        # board.print_board()
+                        board.move(start, end)
+                        turn = change_turn(turn)
             
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if pygame.mouse.get_pressed()[0]:
@@ -135,6 +136,7 @@ def main():
                                         for move in board.board[i][j].get_valid_moves(board.board):
                                             if board.is_legal_move(turn, (selected_pos[0], selected_pos[1]), move):
                                                 valid_moves.append(move)
+
                 elif pygame.mouse.get_pressed()[2]:
                     for j in range(8):
                         for i in range(8):
@@ -172,14 +174,14 @@ def main():
                                                 if board.board[x][y].is_move_castle(selected_pos[0], selected_pos[1]) == O_O:
                                                     if board.board[7][7] != 0:
                                                         if not board.board[7][7].castled:
-                                                            board.move((7, 7), (5, 7))
+                                                            board.move((7, 7), (5, 7), castles=O_O)
                                                             board.board[x][y].castled = True
                                                             board.board[5][7].castled = True
                                                 # o-o-o
                                                 elif board.board[x][y].is_move_castle(selected_pos[0], selected_pos[1]) == O_O_O:
                                                     if board.board[0][7] != 0:
                                                         if not board.board[0][7].castled:
-                                                            board.move((0, 7), (3, 7))
+                                                            board.move((0, 7), (3, 7), castles=O_O_O)
                                                             board.board[x][y].castled = True
                                                             board.board[3][7].castled = True
 
@@ -190,14 +192,14 @@ def main():
                                                 if board.board[x][y].is_move_castle(selected_pos[0], selected_pos[1]) == O_O:
                                                     if board.board[7][0] != 0:
                                                         if not board.board[7][0].castled:
-                                                            board.move((7, 0), (5, 0))
+                                                            board.move((7, 0), (5, 0), castles=O_O)
                                                             board.board[x][y].castled = True
                                                             board.board[5][0].castled = True
                                                 # o-o-o
                                                 elif board.board[x][y].is_move_castle(selected_pos[0], selected_pos[1]) == O_O_O:
                                                     if board.board[0][0] != 0:
                                                         if not board.board[0][0].castled:
-                                                            board.move((0, 0), (3, 0))
+                                                            board.move((0, 0), (3, 0), castles=O_O_O)
                                                             board.board[x][y].castled = True
                                                             board.board[3][0].castled = True
 
@@ -229,9 +231,10 @@ def main():
 
                     else:
                         board.board[selected_pos[0]][selected_pos[1]].change_pos((selected_pos[0], selected_pos[1]))
+                    # for "if selected_pos:", unselect every one!
                     board.set_every_pos()
-                    # board.set_every_coord()
                     board.unselectall()
+                played_moves.append([selected_pos, (x, y)])
                 valid_moves = []
                 selected_pos = ()
             

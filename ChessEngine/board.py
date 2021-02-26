@@ -179,12 +179,17 @@ class Board:
                     print('.', end=' ')
             print()
 
-    def move(self, pos1, pos2, switch=False):
+    def move(self, pos1, pos2, castles=""):
         tboard = self.board[:]
         tboard[pos1[0]][pos1[1]].change_pos(pos2)
         self.board[pos2[0]][pos2[1]], self.board[pos1[0]][pos1[1]] = self.board[pos1[0]][pos1[1]], 0
         self.board = tboard
-        return chr(ord('a') + pos1[0]) + str(8 - pos1[1])+ chr(ord('a') + pos2[0]) + str(8 - pos2[1])
+        if castles == O_O:
+            return O_O
+        elif castles == O_O_O:
+            return O_O_O
+        else:
+            return chr(ord('a') + pos1[0]) + str(8 - pos1[1]) + chr(ord('a') + pos2[0]) + str(8 - pos2[1])
 
     def set_every_pos(self):
         for i in range(8):
