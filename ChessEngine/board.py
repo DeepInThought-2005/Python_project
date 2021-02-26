@@ -36,7 +36,7 @@ class Board:
     def checkmate(self, turn):
         danger_moves = self.get_danger_moves(turn)
         checkers = self.get_checkers(turn)
-        defend_moves = self.get_danger_moves(self.change_turn(turn), pawn_moves=True)
+        defend_moves = self.get_danger_moves(self.change_turn(turn), for_checkmate=True)
         # print(defend_moves)
         valid_king_moves = []
         for i in range(8):
@@ -45,7 +45,6 @@ class Board:
                     if turn != self.board[i][j].color:
                         for move in self.board[i][j].get_valid_moves(self.board):
                             valid_king_moves.append(move)
-
 
         if self.check(turn):
             for move in valid_king_moves:
@@ -59,12 +58,15 @@ class Board:
                         if checker not in valid_king_moves:
                             print("False2")
                             return False
+
                 if checker in defend_moves:
+                    if (6, 0) in defend_moves:
+                        print("nono")
                     return False
+                else:
+                    print(defend_moves)
 
             return True
-
-
 
     def check(self, turn):
         danger_moves = self.get_danger_moves(turn)
@@ -141,17 +143,22 @@ class Board:
         for i in range(8):
             self.board[i][1] = Pawn(i, 1, BLACK, 'P')
 
-    def get_danger_moves(self, turn, pawn_moves=False):
+    def get_danger_moves(self, turn, for_checkmate=False):
         moves = []
         for i in range(8):
             for j in range(8):
                 if self.board[i][j] != 0:
                     if self.board[i][j].color == turn:
-                        if pawn_moves:
+                        if for_checkmate:
                             if isinstance(self.board[i][j], Pawn):
                                 for move in self.board[i][j].get_valid_moves(self.board):
                                     moves.append(move)
-                        else:
+                            else:
+                                if not isinstance(self.board[i][j], King):
+                                    for move in self.board[i][j].get_danger_moves(self.board):
+                                        moves.append(move)
+
+                        if not for_checkmate:
                             for move in self.board[i][j].get_danger_moves(self.board):
                                 moves.append(move)
 

@@ -60,6 +60,7 @@ def onclick(x, y, m_x, m_y):
     return False
 
 def game_over(win, turn, board):
+    turn = change_turn(turn)
     win.fill((255, 255, 255))
     board.set_every_pos()
     # board.set_every_coord()
