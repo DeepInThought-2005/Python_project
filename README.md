@@ -13,4 +13,4 @@ There are
 7. !!! Chess Engine !!! (still working on it 3. Day)
     - Every rules but en passant in chess are programmed in(include check, checkmate, move restiction and so on)!
     - Able to castle; to move with drag & drop; mark with right click, but not arrow; load fen!
-    - not abled: en passant, undo redo moves, promotion(but function already wrote) !
+    - not abled: en passant, undo redo moves !
