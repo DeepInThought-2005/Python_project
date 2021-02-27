@@ -296,13 +296,13 @@ class King(Piece):
         self.l_castled = False # o-o-o
 
     def is_move_castle(self, x, y):
-        result = None
+        result = ""
+        print(self.col, x)
         if self.row == y:
-            if self.col - x > 0:
+            if self.col - x > 1:
                 result = O_O
-            if self.col - x < 0:
+            elif self.col - x < -1:
                 result = O_O_O
-
         return result
 
 

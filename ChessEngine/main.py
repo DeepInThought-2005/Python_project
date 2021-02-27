@@ -134,7 +134,6 @@ def main():
     played_moves = []
     returned_moves = []
     move_text = ""
-    outofb = False
     started = False
     black_time = 15 * 60
     white_time = 15 * 60
@@ -145,7 +144,7 @@ def main():
     while run:
         clock.tick(60)
         if started:
-            if change_turn(turn) == WHITE:
+            if turn == WHITE:
                 white_time -= time.time() - start_time
             else:
                 black_time -= time.time() - start_time
@@ -181,7 +180,8 @@ def main():
 
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if pygame.mouse.get_pressed()[0]:
-                    if not outofb:
+                    m_x, m_y = event.pos
+                    if m_x < WIDTH:
                         for i in range(8):
                             for j in range(8):
                                 marked_pos[i][j] = 0
@@ -206,12 +206,11 @@ def main():
                                 else:
                                     marked_pos[i][j] = 1
 
-
             if event.type == pygame.MOUSEBUTTONUP:
                 m_x, m_y = event.pos
                 selected = False
                 x, y = 0, 0
-                if not outofb:
+                if m_x < WIDTH:
                     x, y = get_pos(m_x, m_y)
                     if selected_pos:
                         # check who's turn
@@ -246,8 +245,8 @@ def main():
                                                         if board.board[0][7] != 0:
                                                             if not board.board[0][7].castled:
                                                                 move_text = board.move((0, 7), (3, 7), castles=O_O_O)
-                                                                board.board[x][y].castled = True
-                                                                board.board[3][7].l_castled = True
+                                                                board.board[x][y].l_castled = True
+                                                                board.board[3][7].castled = True
 
                                             else:
                                                 if not board.board[x][y].s_castled:
@@ -300,7 +299,9 @@ def main():
                         board.unselectall()
                 else:
                     if selected:
-                        board.board[selected_pos[0]][selected_pos[1]].change_pos((selected_pos[0], selected_pos[1]))
+                        print(selected_pos)
+                        board.board[selected_pos[0]][selected_pos[1]].col = selected_pos[0]
+                        board.board[selected_pos[0]][selected_pos[1]].row = selected_pos[1]
 
                     played_moves.append([selected_pos, (x, y)])
                 board.set_every_pos()
