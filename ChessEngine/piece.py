@@ -781,6 +781,23 @@ class Pawn(Piece):
         self.pawn = True
         self.promoted = False
 
+    def is_move_en_passant(self, pos, en_p=()):
+        i, j = self.col, self.row
+        print(j, pos[1], en_p)
+        if en_p:
+            if self.color == BLACK:
+                if pos[1] == en_p[1] and pos[1] + 1 == j:
+                    print(1)
+                    return True
+            else:
+                if pos[1] == en_p[1] and pos[1] - 1 == j:
+                    print(2)
+                    return True
+            return False
+
+
+
+
     def promote(self):
         self.promoted = True
         self.sign = 'Q'
@@ -791,12 +808,15 @@ class Pawn(Piece):
         self.img = pygame.image.load(self.img)
         self.img = pygame.transform.scale(self.img, (W, W))
     
-    def get_danger_moves(self, board):
+    def get_danger_moves(self, board, en_p=()):
         tboard = board.board
         moves = []
         i, j = self.col, self.row
         if not self.promoted:
             if self.color == BLACK:
+                if en_p:
+                    if j == en_p[1]:
+                        moves.append((en_p[0], j + 1))
                 if j + 1 < 8:
                     if i + 1 < 8:
                         if tboard[i + 1][j + 1] != 0:
@@ -807,6 +827,9 @@ class Pawn(Piece):
                             moves.append((i - 1, j + 1))
 
             else:
+                if en_p:
+                    if j == en_p[1]:
+                        moves.append((en_p[0], j - 1))
                 if i + 1 < 8:
                     if tboard[i + 1][j - 1] != 0:
                         moves.append((i + 1, j - 1))
@@ -819,12 +842,15 @@ class Pawn(Piece):
         return moves
 
 
-    def get_valid_moves(self, board):
+    def get_valid_moves(self, board, en_p=()):
         tboard = board.board
         moves = []
         i, j = self.col, self.row
         if not self.promoted:
             if self.color == BLACK:
+                if en_p:
+                    if j == en_p[1]:
+                        moves.append((en_p[0], j + 1))
                 if j + 1 <= 7:
                     if i + 1 <= 7:
                         if tboard[i + 1][j + 1] != 0:
@@ -847,6 +873,9 @@ class Pawn(Piece):
                                 moves.append((i, j + 1))
 
             else:
+                if en_p:
+                    if j == en_p[1]:
+                        moves.append((en_p[0], j - 1))
                 if i + 1 <= 7:
                     if tboard[i + 1][j - 1] != 0:
                         if tboard[i + 1][j - 1].color != self.color:
@@ -871,6 +900,7 @@ class Pawn(Piece):
             moves = queen.get_valid_moves(board)
 
         return moves
+
 
 
 

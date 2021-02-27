@@ -129,6 +129,7 @@ def main():
     clock = pygame.time.Clock()
     selected_pos = ()
     marked_pos = [[0] * 8 for _ in range(8)]
+    en_passant = ()
     valid_moves = []
     turn = board.turn
     played_moves = []
@@ -192,9 +193,13 @@ def main():
                                         board.board[i][j].selected = True
                                         selected_pos = (i, j)
                                         if board.board[selected_pos[0]][selected_pos[1]].color == turn:
-                                            for move in board.board[i][j].get_valid_moves(board):
-                                                if board.is_legal_move(turn, (selected_pos[0], selected_pos[1]), move):
+                                            if isinstance(board.board[i][j], Pawn):
+                                                for move in board.board[i][j].get_valid_moves(board, en_p=en_passant):
                                                     valid_moves.append(move)
+                                            else:
+                                                for move in board.board[i][j].get_valid_moves(board):
+                                                    if board.is_legal_move(turn, (selected_pos[0], selected_pos[1]), move):
+                                                        valid_moves.append(move)
 
                 elif pygame.mouse.get_pressed()[2]:
                     for j in range(8):
@@ -211,7 +216,6 @@ def main():
                 selected = False
                 x, y = 0, 0
                 if m_x < WIDTH:
-                    print("yes")
                     x, y = get_pos(m_x, m_y)
                     if selected_pos:
                         # check who's turn
@@ -225,6 +229,7 @@ def main():
                                                 returned_moves = []
 
                                         played_moves.append([selected_pos, (x, y)])
+                                        # en_passant = 0
                                         started = True
                                         if isinstance(board.board[x][y], Rook):
                                             board.board[x][y].castled = True
@@ -269,6 +274,14 @@ def main():
 
                                         if isinstance(board.board[x][y], Pawn):
                                             board.board[x][y].first = False
+                                            if abs(y - selected_pos[1]) == 2:
+                                                en_passant = (x, y)
+                                            if board.board[x][y].is_move_en_passant(selected_pos, en_passant):
+                                                if turn == BLACK:
+                                                    board.board[x][y - 1] = 0
+                                                else:
+                                                    board.board[x][y + 1] = 0
+
                                         turn = change_turn(turn)
                                         if board.check(BLACK):
                                             print("black checks!")
