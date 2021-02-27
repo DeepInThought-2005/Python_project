@@ -211,6 +211,7 @@ def main():
                 selected = False
                 x, y = 0, 0
                 if m_x < WIDTH:
+                    print("yes")
                     x, y = get_pos(m_x, m_y)
                     if selected_pos:
                         # check who's turn
@@ -294,25 +295,19 @@ def main():
 
                         else:
                             board.board[selected_pos[0]][selected_pos[1]].change_pos((selected_pos[0], selected_pos[1]))
-                        # for "if selected_pos:", unselect every one!
-                        board.set_every_pos()
-                        board.unselectall()
                 else:
-                    if selected:
-                        print(selected_pos)
-                        board.board[selected_pos[0]][selected_pos[1]].col = selected_pos[0]
-                        board.board[selected_pos[0]][selected_pos[1]].row = selected_pos[1]
+                    board.board[selected_pos[0]][selected_pos[1]].change_pos(selected_pos)
 
                     played_moves.append([selected_pos, (x, y)])
                 board.set_every_pos()
                 valid_moves = []
                 selected_pos = ()
+                board.unselectall()
 
             if event.type == pygame.MOUSEMOTION:
                 if selected:
                     x, y = event.pos
                     if x > WIDTH:
-                        outofb = True
                         x = WIDTH
                     img_x = x - W / 2
                     img_y = y - W / 2
