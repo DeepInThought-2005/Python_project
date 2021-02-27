@@ -8,11 +8,18 @@ import os
 WIDTH = 800
 HEIGHT = 800
 W = 100
+
+# colors
+black = (0, 0, 0)
 red = (255, 0, 0)
-hell_red = (255, 50, 60)
-dark_red = (255, 0, 10)
+hell_red = (255, 60, 70)
+dark_red = (255, 0, 20)
 green = (119, 148, 85)
 white = (235, 235, 208)
+hell_green = (153, 204, 0)
+hell_gray = (192, 192, 192)
+checked = (255, 128, 128)
+
 
 # GAME CONSTANTS
 BLACK = 'black'

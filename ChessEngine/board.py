@@ -116,7 +116,7 @@ class Board:
 
             for checker in checkers:
                 for move in defend_moves:
-                    if move in self.board[checker[0]][checker[1]].get_danger_moves(self.board):
+                    if move in self.board[checker[0]][checker[1]].get_danger_moves(self):
                         if checker not in valid_king_moves:
                             return False
 
@@ -127,25 +127,16 @@ class Board:
 
     def check(self, turn):
         danger_moves = self.get_danger_moves(turn)
-        king_pos = None
-        for i in range(8):
-            for j in range(8):
-                if isinstance(self.board[i][j], King):
-                    if turn != self.board[i][j].color:
-                        king_pos = (i, j)
+        king_pos = self.get_king_pos(turn)
 
         if king_pos in danger_moves:
             return True
 
         return False
 
+
     def get_checkers(self, turn):
-        king_pos = None
-        for i in range(8):
-            for j in range(8):
-                if isinstance(self.board[i][j], King):
-                    if turn != self.board[i][j].color:
-                        king_pos = (i, j)
+        king_pos = self.get_king_pos(turn)
 
         checkers = []
         for i in range(8):
@@ -173,6 +164,14 @@ class Board:
                         color = white
 
                 pygame.draw.rect(win, color, (j * W, i * W, W, W))
+
+    def get_king_pos(self, turn):
+        for i in range(8):
+            for j in range(8):
+                if isinstance(self.board[i][j], King):
+                    if turn != self.board[i][j].color:
+                        king_pos = (i, j)
+                        return king_pos
 
 
     def generate_board(self):
@@ -281,14 +280,13 @@ class Board:
         tboard.move(end, start)
         return True            
 
-
     def draw_valid_moves(self, win, moves, board, turn):
         if moves:
             for move in moves:
                 if board[move[0]][move[1]] == 0:
-                    pygame.draw.circle(win, (128, 128, 128), (move[0] * W + W // 2, move[1] * W + W // 2), W // 5)
+                    pygame.draw.circle(win, hell_gray, (move[0] * W + W // 2, move[1] * W + W // 2), W // 5)
                 else:
                     if turn != board[move[0]][move[1]].color:
-                        pygame.draw.circle(win, (128, 128, 128), (move[0] * W + W // 2, move[1] * W + W // 2), W // 2, 8)
+                        pygame.draw.circle(win, hell_gray, (move[0] * W + W // 2, move[1] * W + W // 2), W // 2, 8)
 
 

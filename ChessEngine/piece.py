@@ -792,68 +792,85 @@ class Pawn(Piece):
         self.img = pygame.transform.scale(self.img, (W, W))
     
     def get_danger_moves(self, board):
-        board = board.board
+        tboard = board.board
         moves = []
         i, j = self.col, self.row
-        if self.color == BLACK:
-            if i + 1 < 8:
-                if board[i + 1][j + 1] != 0:
-                    moves.append((i + 1, j + 1))
+        if not self.promoted:
+            if self.color == BLACK:
+                if j + 1 < 8:
+                    if i + 1 < 8:
+                        if tboard[i + 1][j + 1] != 0:
+                            moves.append((i + 1, j + 1))
 
-            if i - 1 > -1:
-                if board[i - 1][j + 1] != 0:
-                    moves.append((i - 1, j + 1))
+                    if i - 1 > -1:
+                        if tboard[i - 1][j + 1] != 0:
+                            moves.append((i - 1, j + 1))
 
+            else:
+                if i + 1 < 8:
+                    if tboard[i + 1][j - 1] != 0:
+                        moves.append((i + 1, j - 1))
+                if i - 1 > -1:
+                    if tboard[i - 1][j - 1] != 0:
+                        moves.append((i - 1, j - 1))
         else:
-            if i + 1 < 8:
-                if board[i + 1][j - 1] != 0:
-                    moves.append((i + 1, j - 1))
-            if i - 1 > -1:
-                if board[i - 1][j - 1] != 0:
-                    moves.append((i - 1, j - 1))
+            queen = Queen(self.col, self.row, self.color, 'Q')
+            moves = queen.get_valid_moves(board)
         return moves
 
 
     def get_valid_moves(self, board):
-        board = board.board
+        tboard = board.board
         moves = []
         i, j = self.col, self.row
-        if self.color == BLACK:
-            if i + 1 <= 7:
-                if board[i + 1][j + 1] != 0:
-                    if board[i + 1][j + 1].color != self.color:
-                        moves.append((i + 1, j + 1))
-            if i - 1 >= 0:
-                if board[i - 1][j + 1] != 0:
-                    if board[i - 1][j + 1].color != self.color:
-                        moves.append((i - 1, j + 1))
-            if self.first:
-                if board[i][j + 1] == 0:
-                    moves.append((i, j + 1))
-                    if board[i][j + 2] == 0:
-                        moves.append((i, j + 2))
+        if not self.promoted:
+            if self.color == BLACK:
+                if j + 1 <= 7:
+                    if i + 1 <= 7:
+                        if tboard[i + 1][j + 1] != 0:
+                            if tboard[i + 1][j + 1].color != self.color:
+                                moves.append((i + 1, j + 1))
+
+                    if i - 1 >= 0:
+                        if tboard[i - 1][j + 1] != 0:
+                            if tboard[i - 1][j + 1].color != self.color:
+                                moves.append((i - 1, j + 1))
+
+
+                    if self.first:
+                        if tboard[i][j + 1] == 0:
+                            moves.append((i, j + 1))
+                            if tboard[i][j + 2] == 0:
+                                moves.append((i, j + 2))
+                    else:
+                        if tboard[i][j + 1] == 0:
+                                moves.append((i, j + 1))
+
             else:
-                if board[i][j + 1] == 0:
-                    moves.append((i, j + 1))
-        
+                if i + 1 <= 7:
+                    if tboard[i + 1][j - 1] != 0:
+                        if tboard[i + 1][j - 1].color != self.color:
+                            moves.append((i + 1, j - 1))
+                if i - 1 >= 0:
+                    if tboard[i - 1][j - 1] != 0:
+                        if tboard[i - 1][j - 1].color != self.color:
+                            moves.append((i - 1, j - 1))
+                if self.first:
+                    if tboard[i][j - 1] == 0:
+                        moves.append((i, j - 1))
+                        if tboard[i][j - 2] == 0:
+                            moves.append((i, j - 2))
+                else:
+                    if tboard[i][j - 1] == 0:
+                        moves.append((i, j - 1))
+
+            if j == 7 or j == 0:
+                self.promote()
         else:
-            if i + 1 <= 7:
-                if board[i + 1][j - 1] != 0:
-                    if board[i + 1][j - 1].color != self.color:
-                        moves.append((i + 1, j - 1))
-            if i - 1 >= 0:
-                if board[i - 1][j - 1] != 0:
-                    if board[i - 1][j - 1].color != self.color:
-                        moves.append((i - 1, j - 1))
-            if self.first:
-                if board[i][j - 1] == 0:
-                    moves.append((i, j - 1))
-                    if board[i][j - 2] == 0:
-                        moves.append((i, j - 2))
-            else:
-                if board[i][j - 1] == 0:
-                    moves.append((i, j - 1))
-                    
+            queen = Queen(self.col, self.row, self.color, 'Q')
+            moves = queen.get_valid_moves(board)
 
         return moves
-                
+
+
+

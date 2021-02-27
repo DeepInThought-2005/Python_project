@@ -1,14 +1,42 @@
 import pygame
 from constants import *
+import time
 from board import *
 pygame.font.init()
 
 a_cool_position = "5B1k/1R6/5p1K/1n1r3p/8/8/8/5b2 w"
 
-def draw_window(win, board, valid_moves, turn, marked_pos):
+
+def draw_window(win, board, valid_moves, turn, marked_pos, black_time, white_time, move_text=""):
+    win.fill(hell_green)
+    t1 = black_time
+    t2 = white_time
+    formattime1 = str(t1 // 60) + ':' + str(t1 % 60)
+    formattime2 = str(t2 // 60) + ':' + str(t2 % 60)
+
+    if t1 % 60 == 0:
+        formattime1 = str(t1 // 60) + ':' + '00'
+    if t2 % 60 == 0:
+        formattime2 = str(t2 // 60) + ':' + '00'
+
+    if t1 % 60 < 10:
+        formattime1 = str(t1 // 60) + ':' + '0' + str(t1 % 60)
+    if t2 % 60 < 10:
+        formattime2 = str(t2 // 60) + ':' + '0' + str(t2 % 60)
+
+    font1 = pygame.font.SysFont("times", 50)
+    font2 = pygame.font.SysFont("Arial", 45)
+    text1 = font2.render("Time: " + str(formattime1), 1, black)
+    text2 = font2.render("Time: " + str(formattime2), 1, black)
+    win.blit(text2, (WIDTH + 300 // 2 - text1.get_width() // 2, HEIGHT - 50 - text2.get_height() // 2))
+    win.blit(text1, (WIDTH + 300 // 2 - text1.get_width() // 2, 10 + text1.get_height()))
+    move_txt = font1.render(move_text, 1, black)
+    win.blit(move_txt, (WIDTH + 300 // 2 - move_txt.get_width() // 2, HEIGHT // 2 - move_txt.get_height() // 2))
+
+
     board.draw(win)
     board.draw_valid_moves(win, valid_moves, board.board, turn)
-
+    king_pos = board.get_king_pos(change_turn(turn))
     # draw mark
     for i in range(8):
         for j in range(8):
@@ -25,6 +53,9 @@ def draw_window(win, board, valid_moves, turn, marked_pos):
                     if j % 2 != 0:
                         color = hell_red
                 pygame.draw.rect(win, color, (i * W, j * W, W, W))
+
+    if board.check(change_turn(turn)):
+        pygame.draw.rect(win, checked, (king_pos[0] * W, king_pos[1] * W, W, W))
 
     # Two times for loop to solve the layer problem!
     for i in range(8):
@@ -63,7 +94,7 @@ def onclick(x, y, m_x, m_y):
 
 def game_over(win, turn, board):
     turn = change_turn(turn)
-    win.fill((255, 255, 255))
+    # win.fill(black)
     board.set_every_pos()
     # board.set_every_coord()
     board.unselectall()
@@ -75,14 +106,24 @@ def game_over(win, turn, board):
             if board.board[i][j] != 0:
                 board.board[i][j].draw(win)
 
-    font = pygame.font.SysFont("times", 100)
-    text = font.render(turn + ' checkmates!', 1, red)
+    text_font = pygame.font.SysFont("times", 100)
+    hint_font = pygame.font.SysFont("times", 60)
+    text = text_font.render(turn + ' checkmates!', 1, red)
+    hint = hint_font.render("click anywhere to continue...", 1, red)
     win.blit(text, (WIDTH // 2 - text.get_width() // 2, HEIGHT // 2 - text.get_height() // 2))
+    win.blit(hint, (WIDTH // 2 - hint.get_width() // 2, HEIGHT // 4 * 3 - text.get_height() // 2))
     pygame.display.update()
+    clicked = False
+    while not clicked:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                quit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                clicked = True
 
 
 def main():
-    win = pygame.display.set_mode((WIDTH, HEIGHT))
+    win = pygame.display.set_mode((WIDTH + 300, HEIGHT))
     pygame.display.set_caption("ChessL")
     board = Board(fen="")
     clock = pygame.time.Clock()
@@ -92,14 +133,28 @@ def main():
     turn = board.turn
     played_moves = []
     returned_moves = []
+    move_text = ""
+    outofb = False
+    started = False
+    black_time = 15 * 60
+    white_time = 15 * 60
 
-    seleceted = False
-
+    selected = False
+    start_time = time.time()
     run = True
     while run:
         clock.tick(60)
-        draw_window(win, board, valid_moves, turn, marked_pos)
+        if started:
+            if change_turn(turn) == WHITE:
+                white_time -= time.time() - start_time
+            else:
+                black_time -= time.time() - start_time
 
+            start_time = time.time()
+        else:
+            start_time = time.time()
+
+        draw_window(win, board, valid_moves, turn, marked_pos, int(black_time), int(white_time), move_text)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
@@ -118,26 +173,28 @@ def main():
                 if event.key == pygame.K_RIGHT:
                     if returned_moves:
                         zug = returned_moves.pop()
-                        end, start = zug[0], zug[1]
+                        start, end = zug[0], zug[1]
                         played_moves.append(zug)
                         # board.print_board()
                         board.move(start, end)
                         turn = change_turn(turn)
-            
+
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if pygame.mouse.get_pressed()[0]:
-                    seleceted = True
-                    for j in range(8):
+                    if not outofb:
                         for i in range(8):
-                            if board.board[i][j] != 0:
-                                x, y = pygame.mouse.get_pos()
-                                if board.board[i][j].onclick(x, y):
-                                    board.board[i][j].selected = True
-                                    selected_pos = (i, j)
-                                    if board.board[selected_pos[0]][selected_pos[1]].color == turn:
-                                        for move in board.board[i][j].get_valid_moves(board):
-                                            if board.is_legal_move(turn, (selected_pos[0], selected_pos[1]), move):
-                                                valid_moves.append(move)
+                            for j in range(8):
+                                marked_pos[i][j] = 0
+                                if board.board[i][j] != 0:
+                                    x, y = pygame.mouse.get_pos()
+                                    if board.board[i][j].onclick(x, y):
+                                        selected = True
+                                        board.board[i][j].selected = True
+                                        selected_pos = (i, j)
+                                        if board.board[selected_pos[0]][selected_pos[1]].color == turn:
+                                            for move in board.board[i][j].get_valid_moves(board):
+                                                if board.is_legal_move(turn, (selected_pos[0], selected_pos[1]), move):
+                                                    valid_moves.append(move)
 
                 elif pygame.mouse.get_pressed()[2]:
                     for j in range(8):
@@ -152,101 +209,110 @@ def main():
 
             if event.type == pygame.MOUSEBUTTONUP:
                 m_x, m_y = event.pos
-                x, y = get_pos(m_x, m_y)    
                 selected = False
-                if selected_pos:
-                    # check who's turn
-                    if turn == board.board[selected_pos[0]][selected_pos[1]].color:
-                        if (x, y) != selected_pos:
-                            if (x, y) in valid_moves:
-                                if board.board[x][y] == 0 or board.board[x][y].color != board.board[selected_pos[0]][selected_pos[1]].color:
-                                    move_text = board.move(selected_pos, (x, y))
-                                    if returned_moves:
-                                        if selected_pos != returned_moves[-1]:
-                                            returned_moves = []
+                x, y = 0, 0
+                if not outofb:
+                    x, y = get_pos(m_x, m_y)
+                    if selected_pos:
+                        # check who's turn
+                        if turn == board.board[selected_pos[0]][selected_pos[1]].color:
+                            if (x, y) != selected_pos:
+                                if (x, y) in valid_moves:
+                                    if board.board[x][y] == 0 or board.board[x][y].color != board.board[selected_pos[0]][selected_pos[1]].color:
+                                        move_text = board.move(selected_pos, (x, y))
+                                        if returned_moves:
+                                            if selected_pos != returned_moves[-1]:
+                                                returned_moves = []
 
-                                    played_moves.append([selected_pos, (x, y)])
-                                    if isinstance(board.board[x][y], Rook):
-                                        board.board[x][y].castled = True
+                                        played_moves.append([selected_pos, (x, y)])
+                                        started = True
+                                        if isinstance(board.board[x][y], Rook):
+                                            board.board[x][y].castled = True
 
-                                    if isinstance(board.board[x][y], King):
-                                        if turn == WHITE:
-                                            if not board.board[x][y].s_castled:
-                                                # o-o
-                                                if board.board[x][y].is_move_castle(selected_pos[0], selected_pos[1]) == O_O:
-                                                    if board.board[7][7] != 0:
-                                                        if not board.board[7][7].castled:
-                                                            board.move((7, 7), (5, 7), castles=O_O)
-                                                            board.board[x][y].s_castled = True
-                                                            board.board[5][7].castled = True
+                                        if isinstance(board.board[x][y], King):
+                                            if turn == WHITE:
+                                                if not board.board[x][y].s_castled:
+                                                    # o-o
+                                                    if board.board[x][y].is_move_castle(selected_pos[0], selected_pos[1]) == O_O:
+                                                        if board.board[7][7] != 0:
+                                                            if not board.board[7][7].castled:
+                                                                move_text = board.move((7, 7), (5, 7), castles=O_O)
+                                                                board.board[x][y].s_castled = True
+                                                                board.board[5][7].castled = True
 
-                                            if not board.board[x][y].l_castled:
-                                                # o-o-o
-                                                if board.board[x][y].is_move_castle(selected_pos[0], selected_pos[1]) == O_O_O:
-                                                    if board.board[0][7] != 0:
-                                                        if not board.board[0][7].castled:
-                                                            board.move((0, 7), (3, 7), castles=O_O_O)
-                                                            board.board[x][y].castled = True
-                                                            board.board[3][7].l_castled = True
+                                                if not board.board[x][y].l_castled:
+                                                    # o-o-o
+                                                    if board.board[x][y].is_move_castle(selected_pos[0], selected_pos[1]) == O_O_O:
+                                                        if board.board[0][7] != 0:
+                                                            if not board.board[0][7].castled:
+                                                                move_text = board.move((0, 7), (3, 7), castles=O_O_O)
+                                                                board.board[x][y].castled = True
+                                                                board.board[3][7].l_castled = True
 
+                                            else:
+                                                if not board.board[x][y].s_castled:
+                                                    # o-o
+                                                    if board.board[x][y].is_move_castle(selected_pos[0], selected_pos[1]) == O_O:
+                                                        if board.board[7][0] != 0:
+                                                            if not board.board[7][0].castled:
+                                                                move_text = board.move((7, 0), (5, 0), castles=O_O)
+                                                                board.board[x][y].s_castled = True
+                                                                board.board[5][0].castled = True
+                                                if not board.board[x][y].s_castled:
+                                                    # o-o-o
+                                                    if board.board[x][y].is_move_castle(selected_pos[0], selected_pos[1]) == O_O_O:
+                                                        if board.board[0][0] != 0:
+                                                            if not board.board[0][0].castled:
+                                                                move_text = board.move((0, 0), (3, 0), castles=O_O_O)
+                                                                board.board[x][y].l_castled = True
+                                                                board.board[3][0].castled = True
 
-                                        else:
-                                            if not board.board[x][y].s_castled:
-                                                # o-o
-                                                if board.board[x][y].is_move_castle(selected_pos[0], selected_pos[1]) == O_O:
-                                                    if board.board[7][0] != 0:
-                                                        if not board.board[7][0].castled:
-                                                            board.move((7, 0), (5, 0), castles=O_O)
-                                                            board.board[x][y].s_castled = True
-                                                            board.board[5][0].castled = True
-                                            if not board.board[x][y].s_castled:
-                                                # o-o-o
-                                                if board.board[x][y].is_move_castle(selected_pos[0], selected_pos[1]) == O_O_O:
-                                                    if board.board[0][0] != 0:
-                                                        if not board.board[0][0].castled:
-                                                            board.move((0, 0), (3, 0), castles=O_O_O)
-                                                            board.board[x][y].l_castled = True
-                                                            board.board[3][0].castled = True
+                                        if isinstance(board.board[x][y], Pawn):
+                                            board.board[x][y].first = False
+                                        turn = change_turn(turn)
+                                        if board.check(BLACK):
+                                            print("black checks!")
+                                        if board.check(WHITE):
+                                            print("white checks!")
+                                        if board.checkmate(BLACK):
+                                            print("black checkmate!")
+                                            game_over(win, turn, board)
+                                            # pygame.time.delay(3000)
+                                            main()
+                                        if board.checkmate(WHITE):
+                                            print("white checkmate!")
+                                            game_over(win, turn, board)
+                                            # pygame.time.delay(3000)
+                                            main()
+                                        print()
+                                        board.print_board()
+                                        print(move_text)
 
-                                    if isinstance(board.board[x][y], Pawn):
-                                        board.board[x][y].first = False
-                                    turn = change_turn(turn)
-                                    if board.check(BLACK):
-                                        print("black checks!")
-                                    if board.check(WHITE):
-                                        print("white checks!")
-                                    if board.checkmate(BLACK):
-                                        print("black checkmate!")
-                                        game_over(win, turn, board)
-                                        pygame.time.delay(3000)
-                                        main()
-                                    if board.checkmate(WHITE):
-                                        print("white checkmate!")
-                                        game_over(win, turn, board)
-                                        pygame.time.delay(3000)
-                                        main()
-                                    print()
-                                    board.print_board()
-                                    print(move_text)
-                                    
-                                elif board.board[x][y].color == board.board[selected_pos[0]][selected_pos[1]].color:
+                                    elif board.board[x][y].color == board.board[selected_pos[0]][selected_pos[1]].color:
+                                        board.board[selected_pos[0]][selected_pos[1]].change_pos((selected_pos[0], selected_pos[1]))
+                                else:
                                     board.board[selected_pos[0]][selected_pos[1]].change_pos((selected_pos[0], selected_pos[1]))
-                            else:
-                                board.board[selected_pos[0]][selected_pos[1]].change_pos((selected_pos[0], selected_pos[1]))
 
-                    else:
+                        else:
+                            board.board[selected_pos[0]][selected_pos[1]].change_pos((selected_pos[0], selected_pos[1]))
+                        # for "if selected_pos:", unselect every one!
+                        board.set_every_pos()
+                        board.unselectall()
+                else:
+                    if selected:
                         board.board[selected_pos[0]][selected_pos[1]].change_pos((selected_pos[0], selected_pos[1]))
-                    # for "if selected_pos:", unselect every one!
-                    board.set_every_pos()
-                    board.unselectall()
 
-                played_moves.append([selected_pos, (x, y)])
+                    played_moves.append([selected_pos, (x, y)])
+                board.set_every_pos()
                 valid_moves = []
                 selected_pos = ()
-            
+
             if event.type == pygame.MOUSEMOTION:
-                if seleceted:
+                if selected:
                     x, y = event.pos
+                    if x > WIDTH:
+                        outofb = True
+                        x = WIDTH
                     img_x = x - W / 2
                     img_y = y - W / 2
                     for j in range(8):
