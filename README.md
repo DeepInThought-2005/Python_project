@@ -12,5 +12,5 @@ There are
 5. Flappybird (Very very object oriented programming, it made a lot of fun for me by making this game!)
 7. !!! Chess Engine !!! (still working on it 3. Day)
     - Every rules but en passant in chess are programmed in(include check, checkmate, move restriction and so on)!
-    - Able to castle; to move with drag & drop; mark with right click, but not arrow; load fen; Promotion and much more!
-    - not abled: en passant!
+    - Able to castle; to move with drag & drop; mark with right click, but not arrow; load fen; Promotion; En passant and much more!
+    - not abled: nothing yet... everything fixed
