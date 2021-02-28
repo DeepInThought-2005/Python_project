@@ -838,7 +838,7 @@ class Pawn(Piece):
                         moves.append((i - 1, j - 1))
         else:
             queen = Queen(self.col, self.row, self.color, 'Q')
-            moves = queen.get_valid_moves(board)
+            moves = queen.get_danger_moves(board)
         return moves
 
 
