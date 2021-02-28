@@ -2,6 +2,7 @@ import pygame
 from constants import *
 import time
 from board import *
+pygame.mixer.init()
 pygame.font.init()
 
 a_cool_position = "5B1k/1R6/5p1K/1n1r3p/8/8/8/5b2 w"
@@ -255,6 +256,10 @@ def main():
                             if (x, y) != selected_pos:
                                 if (x, y) in valid_moves:
                                     if board.board[x][y] == 0 or board.board[x][y].color != board.board[selected_pos[0]][selected_pos[1]].color:
+                                        if board.board[x][y] == 0:
+                                            MOVE.play()
+                                        if board.board[x][y] != 0 and board.board[x][y].color != board.board[selected_pos[0]][selected_pos[1]].color:
+                                            CAPTURE.play()
                                         move_text = board.move(selected_pos, (x, y))
                                         if returned_moves:
                                             if selected_pos != returned_moves[-1]:
@@ -264,6 +269,7 @@ def main():
                                         # en_passant = 0
                                         started = True
                                         last_move = [selected_pos, (x, y)]
+
                                         if isinstance(board.board[x][y], Rook):
                                             board.board[x][y].castled = True
 
@@ -314,6 +320,7 @@ def main():
                                                     board.board[x][y - 1] = 0
                                                 else:
                                                     board.board[x][y + 1] = 0
+                                                CAPTURE.play()
 
                                         turn = change_turn(turn)
                                         if board.check(BLACK):
