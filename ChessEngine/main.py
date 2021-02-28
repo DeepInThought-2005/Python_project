@@ -7,7 +7,7 @@ pygame.font.init()
 a_cool_position = "5B1k/1R6/5p1K/1n1r3p/8/8/8/5b2 w"
 
 
-def draw_window(win, board, valid_moves, turn, marked_pos, black_time, white_time, move_text=""):
+def draw_window(win, board, valid_moves, turn, marked_pos, black_time, white_time, last_move, move_text=""):
     win.fill(hell_green)
     t1 = black_time
     t2 = white_time
@@ -35,8 +35,37 @@ def draw_window(win, board, valid_moves, turn, marked_pos, black_time, white_tim
 
 
     board.draw(win)
+
+    if last_move:
+        start = last_move[0]
+        end = last_move[1]
+        if start[0] % 2 == 0:
+            if start[1] % 2 != 0:
+                pygame.draw.rect(win, dark_orange, (start[0] * W, start[1] * W, W, W))
+            if start[1] % 2 == 0:
+                pygame.draw.rect(win, hell_orange, (start[0] * W, start[1] * W, W, W))
+        else:
+            if start[1] % 2 == 0:
+                pygame.draw.rect(win, dark_orange, (start[0] * W, start[1] * W, W, W))
+            if start[1] % 2 != 0:
+                pygame.draw.rect(win, hell_orange, (start[0] * W, start[1] * W, W, W))
+
+        if end[0] % 2 == 0:
+            if end[1] % 2 != 0:
+                pygame.draw.rect(win, dark_orange, (end[0] * W, end[1] * W, W, W))
+            if end[1] % 2 == 0:
+                pygame.draw.rect(win, hell_orange, (end[0] * W, end[1] * W, W, W))
+        else:
+            if end[1] % 2 == 0:
+                pygame.draw.rect(win, dark_orange, (end[0] * W, end[1] * W, W, W))
+            if end[1] % 2 != 0:
+                pygame.draw.rect(win, hell_orange, (end[0] * W, end[1] * W, W, W))
+
+
     board.draw_valid_moves(win, valid_moves, board.board, turn)
     king_pos = board.get_king_pos(change_turn(turn))
+
+
     # draw mark
     for i in range(8):
         for j in range(8):
@@ -56,6 +85,7 @@ def draw_window(win, board, valid_moves, turn, marked_pos, black_time, white_tim
 
     if board.check(change_turn(turn)):
         pygame.draw.rect(win, checked, (king_pos[0] * W, king_pos[1] * W, W, W))
+
 
     # Two times for loop to solve the layer problem!
     for i in range(8):
@@ -135,6 +165,7 @@ def main():
     played_moves = []
     returned_moves = []
     move_text = ""
+    last_move = []
     started = False
     black_time = 15 * 60
     white_time = 15 * 60
@@ -154,7 +185,7 @@ def main():
         else:
             start_time = time.time()
 
-        draw_window(win, board, valid_moves, turn, marked_pos, int(black_time), int(white_time), move_text)
+        draw_window(win, board, valid_moves, turn, marked_pos, int(black_time), int(white_time), last_move, move_text)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
@@ -195,7 +226,8 @@ def main():
                                         if board.board[selected_pos[0]][selected_pos[1]].color == turn:
                                             if isinstance(board.board[i][j], Pawn):
                                                 for move in board.board[i][j].get_valid_moves(board, en_p=en_passant):
-                                                    valid_moves.append(move)
+                                                    if board.is_legal_move(turn, (selected_pos[0], selected_pos[1]), move):
+                                                        valid_moves.append(move)
                                             else:
                                                 for move in board.board[i][j].get_valid_moves(board):
                                                     if board.is_legal_move(turn, (selected_pos[0], selected_pos[1]), move):
@@ -231,6 +263,7 @@ def main():
                                         played_moves.append([selected_pos, (x, y)])
                                         # en_passant = 0
                                         started = True
+                                        last_move = [selected_pos, (x, y)]
                                         if isinstance(board.board[x][y], Rook):
                                             board.board[x][y].castled = True
 

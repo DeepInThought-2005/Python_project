@@ -18,6 +18,8 @@ green = (119, 148, 85)
 white = (235, 235, 208)
 hell_green = (153, 204, 0)
 hell_gray = (192, 192, 192)
+hell_orange = (255, 204, 0)
+dark_orange = (255, 204, 80)
 checked = (255, 128, 128)
 
 
@@ -27,20 +29,28 @@ WHITE = 'white'
 O_O = 'o-o'
 O_O_O = 'o-o-o'
 
-#IMGS
-BLACK_KING = "chess_material/black_king.png"
-BLACK_QUEEN = "chess_material/black_queen.png"
-BLACK_ROOK = "chess_material/black_rock.png"
-BLACK_KNIGHT = "chess_material/black_knight.png"
-BLACK_BISHOP = "chess_material/black_bishop.png"
-BLACK_PAWN = "chess_material/black_pawn.png"
+# Piece style
+GAMEROOM = "GameRoom"
+NEON = "Neon"
 
-WHITE_KING = os.path.join("chess_material", "white_king.png")
-WHITE_QUEEN = os.path.join("chess_material", "white_queen.png")
-WHITE_ROOK = os.path.join("chess_material", "white_rock.png")
-WHITE_KNIGHT = os.path.join("chess_material", "white_knight.png")
-WHITE_BISHOP = os.path.join("chess_material", "white_bishop.png")
-WHITE_PAWN = os.path.join("chess_material", "white_pawn.png")
+PIECESTYLE = GAMEROOM
+
+#IMGS
+BOARD = os.path.join(PIECESTYLE, "chessboard.png")
+
+BLACK_KING = os.path.join(PIECESTYLE, "black_king.png")
+BLACK_QUEEN = os.path.join(PIECESTYLE, "black_queen.png")
+BLACK_ROOK = os.path.join(PIECESTYLE, "black_rook.png")
+BLACK_KNIGHT = os.path.join(PIECESTYLE, "black_knight.png")
+BLACK_BISHOP = os.path.join(PIECESTYLE, "black_bishop.png")
+BLACK_PAWN = os.path.join(PIECESTYLE, "black_pawn.png")
+
+WHITE_KING = os.path.join(PIECESTYLE, "white_king.png")
+WHITE_QUEEN = os.path.join(PIECESTYLE, "white_queen.png")
+WHITE_ROOK = os.path.join(PIECESTYLE, "white_rook.png")
+WHITE_KNIGHT = os.path.join(PIECESTYLE, "white_knight.png")
+WHITE_BISHOP = os.path.join(PIECESTYLE, "white_bishop.png")
+WHITE_PAWN = os.path.join(PIECESTYLE, "white_pawn.png")
 
 
 # BOARD_IMG = pygame.transform.scale(pygame.image.load(os.path.join("chess_material", "chessboard.png")), (WIDTH, HEIGHT))

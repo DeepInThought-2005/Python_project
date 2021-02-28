@@ -7,6 +7,9 @@ class Board:
     def __init__(self, fen=""):
         self.board = [[0] * 8 for _ in range(8)]
         self.turn = WHITE
+        self.img = BOARD
+        self.img = pygame.image.load(self.img)
+        self.img = pygame.transform.scale(self.img, (WIDTH, WIDTH))
         if fen:
             self.load_FEN(fen)
         else:
@@ -149,21 +152,22 @@ class Board:
         return checkers
 
     def draw(self, win):
-        for i in range(8):
-            for j in range(8):
-                color = ()
-                if i % 2 == 0:
-                    if j % 2 != 0:
-                        color = green
-                    if j % 2 == 0:
-                        color = white
-                else:
-                    if j % 2 == 0:
-                        color = green
-                    if j % 2 != 0:
-                        color = white
-
-                pygame.draw.rect(win, color, (j * W, i * W, W, W))
+        win.blit(self.img, (0, 0))
+        # for i in range(8):
+        #     for j in range(8):
+        #         color = ()
+        #         if i % 2 == 0:
+        #             if j % 2 != 0:
+        #                 color = green
+        #             if j % 2 == 0:
+        #                 color = white
+        #         else:
+        #             if j % 2 == 0:
+        #                 color = green
+        #             if j % 2 != 0:
+        #                 color = white
+        #
+        #         pygame.draw.rect(win, color, (j * W, i * W, W, W))
 
     def get_king_pos(self, turn):
         for i in range(8):
