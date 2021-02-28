@@ -1,8 +1,6 @@
 import pygame
+pygame.mixer.init()
 import os
-
-
-# All constants come here!
 
 # SETUP CONSTANTS
 WIDTH = 800
@@ -21,6 +19,11 @@ hell_gray = (192, 192, 192)
 hell_orange = (255, 204, 0)
 dark_orange = (255, 204, 80)
 checked = (255, 128, 128)
+
+# SOUND CONSTANTS
+MOVE = pygame.mixer.Sound(os.path.join("Sound", "Move.ogg"))
+CAPTURE = pygame.mixer.Sound(os.path.join("Sound", "Capture.ogg"))
+START_END = pygame.mixer.Sound(os.path.join("Sound", "start_end.ogg"))
 
 
 # GAME CONSTANTS

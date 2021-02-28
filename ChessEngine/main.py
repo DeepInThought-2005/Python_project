@@ -124,6 +124,7 @@ def onclick(x, y, m_x, m_y):
 
 
 def game_over(win, turn, board):
+    START_END.play()
     turn = change_turn(turn)
     # win.fill(black)
     board.set_every_pos()
@@ -267,6 +268,8 @@ def main():
 
                                         played_moves.append([selected_pos, (x, y)])
                                         # en_passant = 0
+                                        if not started:
+                                            START_END.play()
                                         started = True
                                         last_move = [selected_pos, (x, y)]
 
