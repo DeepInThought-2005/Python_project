@@ -3,6 +3,9 @@
 Some of my self wrote python project...
 Just want to save these online
 
+Library "Pygame" should be installed before you run my programm
+type "pip3 install pygame" or "pip install pygame" in your command line.
+
 There are 
 
 1. Lottery programm with visualization
