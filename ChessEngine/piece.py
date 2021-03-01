@@ -297,7 +297,6 @@ class King(Piece):
 
     def is_move_castle(self, x, y):
         result = ""
-        print(self.col, x)
         if self.row == y:
             if self.col - x > 1:
                 result = O_O
@@ -783,15 +782,12 @@ class Pawn(Piece):
 
     def is_move_en_passant(self, pos, en_p=()):
         i, j = self.col, self.row
-        print(j, pos[1], en_p)
         if en_p:
             if self.color == BLACK:
                 if pos[1] == en_p[1] and pos[1] + 1 == j:
-                    print(1)
                     return True
             else:
                 if pos[1] == en_p[1] and pos[1] - 1 == j:
-                    print(2)
                     return True
             return False
 
@@ -874,7 +870,7 @@ class Pawn(Piece):
 
             else:
                 if en_p:
-                    if j == en_p[1]:
+                    if j == en_p[1] and abs(i - en_p[0]) == 1:
                         moves.append((en_p[0], j - 1))
                 if i + 1 <= 7:
                     if tboard[i + 1][j - 1] != 0:

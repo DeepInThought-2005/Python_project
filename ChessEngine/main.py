@@ -7,6 +7,10 @@ pygame.font.init()
 
 a_cool_position = "5B1k/1R6/5p1K/1n1r3p/8/8/8/5b2 w"
 
+# AI part
+def minimax(board, depth, max_turn, max_color):
+    pass
+
 
 def draw_window(win, board, valid_moves, turn, marked_pos, black_time, white_time, last_move, move_text=""):
     win.fill(hell_green)
@@ -83,10 +87,10 @@ def draw_window(win, board, valid_moves, turn, marked_pos, black_time, white_tim
                     if j % 2 != 0:
                         color = hell_red
                 pygame.draw.rect(win, color, (i * W, j * W, W, W))
-
-    if board.check(change_turn(turn)):
-        pygame.draw.rect(win, checked, (king_pos[0] * W, king_pos[1] * W, W, W))
-
+    m_x = pygame.mouse.get_pos()[0]
+    if m_x < WIDTH:
+        if board.check(change_turn(turn)):
+            pygame.draw.rect(win, checked, (king_pos[0] * W, king_pos[1] * W, W, W))
 
     # Two times for loop to solve the layer problem!
     for i in range(8):
@@ -123,7 +127,7 @@ def onclick(x, y, m_x, m_y):
     return False
 
 
-def game_over(win, turn, board):
+def game_over(win, turn, board, tie=False):
     START_END.play()
     turn = change_turn(turn)
     # win.fill(black)
@@ -140,7 +144,10 @@ def game_over(win, turn, board):
 
     text_font = pygame.font.SysFont("times", 100)
     hint_font = pygame.font.SysFont("times", 60)
-    text = text_font.render(turn + ' checkmates!', 1, red)
+    if tie:
+        text = text_font.render("Draw!", 1, red)
+    else:
+        text = text_font.render(turn + ' checkmates!', 1, red)
     hint = hint_font.render("click anywhere to continue...", 1, red)
     win.blit(text, (WIDTH // 2 - text.get_width() // 2, HEIGHT // 2 - text.get_height() // 2))
     win.blit(hint, (WIDTH // 2 - hint.get_width() // 2, HEIGHT // 4 * 3 - text.get_height() // 2))
@@ -186,8 +193,11 @@ def main():
             start_time = time.time()
         else:
             start_time = time.time()
-
         draw_window(win, board, valid_moves, turn, marked_pos, int(black_time), int(white_time), last_move, move_text)
+        if board.checkdraw():
+            print("Draw!")
+            game_over(win, turn, board, tie=True)
+            main()
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
@@ -316,14 +326,16 @@ def main():
 
                                         if isinstance(board.board[x][y], Pawn):
                                             board.board[x][y].first = False
-                                            if abs(y - selected_pos[1]) == 2:
-                                                en_passant = (x, y)
                                             if board.board[x][y].is_move_en_passant(selected_pos, en_passant):
                                                 if turn == BLACK:
                                                     board.board[x][y - 1] = 0
                                                 else:
                                                     board.board[x][y + 1] = 0
                                                 CAPTURE.play()
+                                        if abs(y - selected_pos[1]) == 2:
+                                            en_passant = (x, y)
+                                        else:
+                                            en_passant = ()
 
                                         turn = change_turn(turn)
                                         if board.check(BLACK):
@@ -333,13 +345,12 @@ def main():
                                         if board.checkmate(BLACK):
                                             print("black checkmate!")
                                             game_over(win, turn, board)
-                                            # pygame.time.delay(3000)
                                             main()
                                         if board.checkmate(WHITE):
                                             print("white checkmate!")
                                             game_over(win, turn, board)
-                                            # pygame.time.delay(3000)
                                             main()
+
                                         print()
                                         board.print_board()
                                         print(move_text)

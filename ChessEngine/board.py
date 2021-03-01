@@ -4,6 +4,13 @@ from constants import *
 
 
 class Board:
+    piece_values = {"Q": 900,
+                    "K": 0,
+                    "B": 300,
+                    "N": 300,
+                    "R": 500,
+                    "P": 100}
+
     def __init__(self, fen=""):
         self.board = [[0] * 8 for _ in range(8)]
         self.turn = WHITE
@@ -15,9 +22,21 @@ class Board:
         else:
             self.generate_board()
 
+    def game_over(self):
+        pass
+
+    def get_score(self):
+        self.white_score = 0
+        self.black_score = 0
+        for i in range(8):
+            for j in range(8):
+                if self.board[i][j].color == WHITE:
+                    self.white_score += self.piece_values[self.board[i][j].sign]
+                else:
+                    self.white_score += self.piece_values[self.board[i][j].sign]
+
     def load_FEN(self, fen):
         fen = fen.replace(' ', '')
-        print(fen)
         self.board = [[0] * 8 for _ in range(8)]
         i = -1
         j = 0
@@ -65,7 +84,6 @@ class Board:
                 i += int(x)
 
             if i == 7 and j == 7:
-                print(self.turn, fen[k + 1])
                 if fen[k + 1] == 'b':
                     self.turn = BLACK
                 else:
@@ -98,6 +116,58 @@ class Board:
         else:
             turn = BLACK
         return turn
+
+    def checkdraw(self):
+        count = 0
+        for i in range(8):
+            for j in range(8):
+                if self.board[i][j] != 0:
+                    if not isinstance(self.board[i][j], King):
+                        count += 1
+
+        if not count:
+            return True
+
+        if count <= 4:
+            b_n = b_b = w_n = w_b = 0
+            for i in range(8):
+                for j in range(8):
+                    if self.board[i][j] != 0:
+                        if self.board[i][j].color == WHITE:
+                            if isinstance(self.board[i][j], Knight):
+                                w_n += 1
+                            if isinstance(self.board[i][j], Bishop):
+                                w_b += 1
+                        else:
+                            if isinstance(self.board[i][j], Knight):
+                                b_n += 1
+                            if isinstance(self.board[i][j], Bishop):
+                                b_b += 1
+            if count == 1:
+                if b_n == 1 or b_b == 1 or w_n == 1 or w_b == 1:
+                    return True
+
+            elif count == 2:
+                if b_n == 1 and w_n == 1 or \
+                   b_n == 1 and w_b == 1 or \
+                   b_b == 1 and w_n == 1 or \
+                   b_b == 1 and w_b == 1:
+                    return True
+
+                if b_n == 2 or w_n == 2:
+                    return True
+
+            elif count == 3:
+                if w_n == 2 and b_n == 1 or w_n == 2 and b_b == 1 or \
+                   b_n == 2 and w_n == 1 or b_n == 2 and w_b == 1:
+                    return True
+
+            else:
+                if w_n == 2 and b_n == 2:
+                    return True
+
+        return False
+
 
     def checkmate(self, turn):
         danger_moves = self.get_danger_moves(turn)
