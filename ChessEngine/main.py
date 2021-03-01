@@ -1,6 +1,7 @@
 import pygame
 from constants import *
 import time
+import random
 from board import *
 pygame.mixer.init()
 pygame.font.init()
@@ -8,8 +9,19 @@ pygame.font.init()
 a_cool_position = "5B1k/1R6/5p1K/1n1r3p/8/8/8/5b2 w"
 
 # AI part
+def evaluate(board, max_color):
+    if max_color == WHITE:
+        return board.white_score - board.black_score
+    else:
+        return board.black_score - board.white_score
+
+
 def minimax(board, depth, max_turn, max_color):
-    pass
+    if depth == 0 or board.game_over():
+        return None, evaluate(board, max_color)
+    moves = board.get_valid_moves(max_turn)
+    best_move = random.choice(moves)
+
 
 
 def draw_window(win, board, valid_moves, turn, marked_pos, black_time, white_time, last_move, move_text=""):
@@ -164,15 +176,13 @@ def game_over(win, turn, board, tie=False):
 def main():
     win = pygame.display.set_mode((WIDTH + 300, HEIGHT))
     pygame.display.set_caption("ChessL")
-    board = Board(fen="")
+    board = Board(fen="")#6k1/4rppp/8/8/8/8/5PPP/1Q4K1 w
     clock = pygame.time.Clock()
     selected_pos = ()
     marked_pos = [[0] * 8 for _ in range(8)]
     en_passant = ()
     valid_moves = []
     turn = board.turn
-    played_moves = []
-    returned_moves = []
     move_text = ""
     last_move = []
     started = False
@@ -194,6 +204,7 @@ def main():
         else:
             start_time = time.time()
         draw_window(win, board, valid_moves, turn, marked_pos, int(black_time), int(white_time), last_move, move_text)
+        board.get_score()
         if board.checkdraw():
             print("Draw!")
             game_over(win, turn, board, tie=True)
@@ -205,22 +216,12 @@ def main():
 
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT:
-                    if played_moves:
-                        zug = played_moves.pop()
-                        end, start = zug[0], zug[1]
-                        returned_moves.append(zug)
-                        board.move(start, end)
-                        # board.print_board()
-                        turn = change_turn(turn)
+                    board.undo_move()
+                    turn = change_turn(turn)
 
                 if event.key == pygame.K_RIGHT:
-                    if returned_moves:
-                        zug = returned_moves.pop()
-                        start, end = zug[0], zug[1]
-                        played_moves.append(zug)
-                        # board.print_board()
-                        board.move(start, end)
-                        turn = change_turn(turn)
+                    board.redo_moves()
+                    turn = change_turn(turn)
 
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if pygame.mouse.get_pressed()[0]:
@@ -244,6 +245,7 @@ def main():
                                                 for move in board.board[i][j].get_valid_moves(board):
                                                     if board.is_legal_move(turn, (selected_pos[0], selected_pos[1]), move):
                                                         valid_moves.append(move)
+                                        # print(valid_moves)
 
                 elif pygame.mouse.get_pressed()[2]:
                     for j in range(8):
@@ -272,17 +274,11 @@ def main():
                                         if board.board[x][y] != 0 and board.board[x][y].color != board.board[selected_pos[0]][selected_pos[1]].color:
                                             CAPTURE.play()
                                         move_text = board.move(selected_pos, (x, y))
-                                        if returned_moves:
-                                            if selected_pos != returned_moves[-1]:
-                                                returned_moves = []
 
-                                        played_moves.append([selected_pos, (x, y)])
-                                        # en_passant = 0
                                         if not started:
                                             START_END.play()
                                         started = True
                                         last_move = [selected_pos, (x, y)]
-
                                         if isinstance(board.board[x][y], Rook):
                                             board.board[x][y].castled = True
 
@@ -336,8 +332,6 @@ def main():
                                             en_passant = (x, y)
                                         else:
                                             en_passant = ()
-
-                                        turn = change_turn(turn)
                                         if board.check(BLACK):
                                             print("black checks!")
                                         if board.check(WHITE):
@@ -350,10 +344,17 @@ def main():
                                             print("white checkmate!")
                                             game_over(win, turn, board)
                                             main()
+                                        board.played_moves.append(last_move)
+                                        if board.returned_moves:
+                                            if last_move != board.returned_moves[-1]:
+                                                for x in range(len(board.returned_moves)):
+                                                    board.returned_moves = []
+                                        turn = change_turn(turn)
 
                                         print()
                                         board.print_board()
                                         print(move_text)
+
 
                                     elif board.board[x][y].color == board.board[selected_pos[0]][selected_pos[1]].color:
                                         board.board[selected_pos[0]][selected_pos[1]].change_pos((selected_pos[0], selected_pos[1]))
@@ -364,8 +365,6 @@ def main():
                             board.board[selected_pos[0]][selected_pos[1]].change_pos((selected_pos[0], selected_pos[1]))
                 else:
                     board.board[selected_pos[0]][selected_pos[1]].change_pos(selected_pos)
-
-                    played_moves.append([selected_pos, (x, y)])
                 board.set_every_pos()
                 valid_moves = []
                 selected_pos = ()

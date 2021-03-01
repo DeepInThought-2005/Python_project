@@ -815,11 +815,11 @@ class Pawn(Piece):
                         moves.append((en_p[0], j + 1))
                 if j + 1 < 8:
                     if i + 1 < 8:
-                        if tboard[i + 1][j + 1] != 0:
+                        # if tboard[i + 1][j + 1] != 0:
                             moves.append((i + 1, j + 1))
 
                     if i - 1 > -1:
-                        if tboard[i - 1][j + 1] != 0:
+                        # if tboard[i - 1][j + 1] != 0:
                             moves.append((i - 1, j + 1))
 
             else:
@@ -827,10 +827,10 @@ class Pawn(Piece):
                     if j == en_p[1]:
                         moves.append((en_p[0], j - 1))
                 if i + 1 < 8:
-                    if tboard[i + 1][j - 1] != 0:
+                    # if tboard[i + 1][j - 1] != 0:
                         moves.append((i + 1, j - 1))
                 if i - 1 > -1:
-                    if tboard[i - 1][j - 1] != 0:
+                    # if tboard[i - 1][j - 1] != 0:
                         moves.append((i - 1, j - 1))
         else:
             queen = Queen(self.col, self.row, self.color, 'Q')
