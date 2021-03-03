@@ -1,6 +1,7 @@
 import pygame
 from piece import *
 from constants import *
+import copy
 
 
 class Board:
@@ -188,27 +189,22 @@ class Board:
                             valid_king_moves.append(move)
 
         if self.check(turn):
+            # if checker can be captured
+            if len(checkers) != 2:
+                for checker in checkers:
+                    if checker in defend_moves:
+                        return False
+
+            # if king can move
             for move in valid_king_moves:
                 if self.is_legal_move(turn, king_pos, move):
-                    print("False1")
                     return False
 
-
-            for move in defend_moves:
-                print(move)
-                if not self.is_legal_move(turn, move[0], move[1]):
-                    print("False2")
-                    return False
-
-                    # if move in self.board[checker[0]][checker[1]].get_danger_moves(self):
-                    #     print(move)
-                    #     if checker not in valid_king_moves:
-                    #         print("False2")
-                    #         return False
-            for checker in checkers:
-                if checker in defend_moves:
-                    print("False3")
-                    return False
+            # if something can block
+            if len(checkers) != 2:
+                for move in defend_moves:
+                    if self.is_legal_move(turn, move[0], move[1], for_checkmate=True):
+                        return False
 
             return True
 
@@ -237,21 +233,6 @@ class Board:
 
     def draw(self, win):
         win.blit(self.img, (0, 0))
-        # for i in range(8):
-        #     for j in range(8):
-        #         color = ()
-        #         if i % 2 == 0:
-        #             if j % 2 != 0:
-        #                 color = green
-        #             if j % 2 == 0:
-        #                 color = white
-        #         else:
-        #             if j % 2 == 0:
-        #                 color = green
-        #             if j % 2 != 0:
-        #                 color = white
-        #
-        #         pygame.draw.rect(win, color, (j * W, i * W, W, W))
 
     def get_king_pos(self, turn):
         for i in range(8):
@@ -348,15 +329,29 @@ class Board:
 
     def redo_moves(self):
         if self.returned_moves:
-            move = self.returned_moves.pop()
-            self.move(move[0], move[1])
-            self.played_moves.append([move[0], move[1]])
+            bo = self.returned_moves.pop()
+            self.board = [[0] * 8 for _ in range(8)]
+            self.played_moves.append(self.board[:])
+            for i in range(8):
+                for j in range(8):
+                    if bo[i][j] != 0:
+                        self.board[i][j] = bo[i][j].__class__(i, j, bo[i][j].color, bo[i][j].sign)
+            self.print_board()
+            self.set_every_pos()
+            print(bo)
 
     def undo_move(self):
         if self.played_moves:
-            move = self.played_moves.pop()
-            self.move(move[1], move[0])
-            self.returned_moves.append([move[0], move[1]])
+            bo = self.played_moves.pop()
+            self.returned_moves.append(self.board[:])
+            self.board = [[0] * 8 for _ in range(8)]
+            for i in range(8):
+                for j in range(8):
+                    if bo[i][j] != 0:
+                        self.board[i][j] = bo[i][j].__class__(i, j, bo[i][j].color, bo[i][j].sign)
+            self.print_board()
+            self.set_every_pos()
+            print(bo)
 
     def set_every_pos(self):
         for i in range(8):
@@ -376,19 +371,40 @@ class Board:
                 if self.board[j][i] != 0:
                     self.board[j][i].selected = False
 
-    def is_legal_move(self, turn, start, end):
+    def get_board(self):
+        tboard = [[0] * 8 for _ in range(8)]
+        for i in range(8):
+            for j in range(8):
+                if self.board[i][j] != 0:
+                    # Cls = self.board[i][j].__class__(i, j, self.board[i][j].color, self.board[i][j].sign)
+                    tboard[i][j] = self.board[i][j].__class__(i, j, self.board[i][j].color, self.board[i][j].sign)
+        return tboard
+
+    def is_legal_move(self, turn, start, end, for_checkmate=False):
         tboard = Board()
         tboard.board = [[0] * 8 for _ in range(8)]
         for i in range(8):
             for j in range(8):
                 tboard.board[i][j] = self.board[i][j]
-        tboard.move(start, end)
-        turn = self.change_turn(turn)
-        if tboard.check(turn):
-            tboard.move(end, start)
-            return False
-        tboard.move(end, start)
-        return True
+
+        if not for_checkmate:
+            if not isinstance(tboard.board[end[0]][end[1]], King):
+                tboard.move(start, end)
+                turn = self.change_turn(turn)
+                if tboard.check(turn):
+                    tboard.move(end, start)
+                    return False
+                tboard.move(end, start)
+                return True
+        else:
+            if not isinstance(tboard.board[end[0]][end[1]], King):
+                tboard.move(start, end)
+                # turn = self.change_turn(turn)
+                if tboard.check(turn):
+                    tboard.move(end, start)
+                    return False
+                tboard.move(end, start)
+                return True
 
     def draw_valid_moves(self, win, moves, board, turn):
         if moves:

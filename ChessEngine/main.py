@@ -1,6 +1,7 @@
 import pygame
 from constants import *
 import time
+import copy
 import random
 from board import *
 pygame.mixer.init()
@@ -176,7 +177,7 @@ def game_over(win, turn, board, tie=False):
 def main():
     win = pygame.display.set_mode((WIDTH + 300, HEIGHT))
     pygame.display.set_caption("ChessL")
-    board = Board(fen="")#6k1/4rppp/8/8/8/8/5PPP/1Q4K1 w
+    board = Board(fen="6k1/4nppp/8/8/8/8/5PPP/1Q4K1 w")#6k1/4rppp/8/8/8/8/5PPP/1Q4K1 w
     clock = pygame.time.Clock()
     selected_pos = ()
     marked_pos = [[0] * 8 for _ in range(8)]
@@ -273,6 +274,8 @@ def main():
                                             MOVE.play()
                                         if board.board[x][y] != 0 and board.board[x][y].color != board.board[selected_pos[0]][selected_pos[1]].color:
                                             CAPTURE.play()
+                                        prev_board = board.get_board()
+
                                         move_text = board.move(selected_pos, (x, y))
 
                                         if not started:
@@ -344,11 +347,10 @@ def main():
                                             print("white checkmate!")
                                             game_over(win, turn, board)
                                             main()
-                                        board.played_moves.append(last_move)
+                                        board.played_moves.append(prev_board)
                                         if board.returned_moves:
-                                            if last_move != board.returned_moves[-1]:
-                                                for x in range(len(board.returned_moves)):
-                                                    board.returned_moves = []
+                                            if board.board != board.returned_moves[-1]:
+                                                board.returned_moves = []
                                         turn = change_turn(turn)
 
                                         print()
