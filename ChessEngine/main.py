@@ -25,7 +25,7 @@ def minimax(board, depth, max_turn, max_color):
 
 
 
-def draw_window(win, board, valid_moves, turn, marked_pos, black_time, white_time, last_move, move_text=""):
+def draw_window(win, board, valid_moves, turn, marked_pos, black_time, white_time, last_move, selected_pos, move_text=""):
     win.fill(hell_green)
     t1 = black_time
     t2 = white_time
@@ -105,20 +105,16 @@ def draw_window(win, board, valid_moves, turn, marked_pos, black_time, white_tim
         if board.check(change_turn(turn)):
             pygame.draw.rect(win, checked, (king_pos[0] * W, king_pos[1] * W, W, W))
 
-    # Two times for loop to solve the layer problem!
     for i in range(8):
         for j in range(8):
             if board.board[i][j] != 0:
-                if turn != board.board[i][j].color:
-                    board.board[i][j].draw(win)
-
-    for i in range(8):
-        for j in range(8):
-            if board.board[i][j] != 0:
-                if turn == board.board[i][j].color:
-                    board.board[i][j].draw(win)
+                board.board[i][j].draw(win)
+    # solve the layer problem!
+    if selected_pos:
+        board.board[selected_pos[0]][selected_pos[1]].draw(win)
 
     pygame.display.update()
+
 
 def get_pos(m_x, m_y):
     for i in range(8):
@@ -206,7 +202,7 @@ def main():
             start_time = time.time()
         else:
             start_time = time.time()
-        draw_window(win, board, valid_moves, turn, marked_pos, int(black_time), int(white_time), last_move, move_text)
+        draw_window(win, board, valid_moves, turn, marked_pos, int(black_time), int(white_time), last_move, selected_pos, move_text)
         board.get_score()
         if board.checkdraw():
             print("Draw!")
