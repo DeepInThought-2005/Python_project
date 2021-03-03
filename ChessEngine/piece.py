@@ -888,9 +888,6 @@ class Pawn(Piece):
                 else:
                     if tboard[i][j - 1] == 0:
                         moves.append((i, j - 1))
-
-            if j == 7 or j == 0:
-                self.promote()
         else:
             queen = Queen(self.col, self.row, self.color, 'Q')
             moves = queen.get_valid_moves(board)

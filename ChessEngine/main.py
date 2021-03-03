@@ -225,8 +225,9 @@ def main():
                     turn = change_turn(turn)
 
             if event.type == pygame.MOUSEBUTTONDOWN:
+
                 if pygame.mouse.get_pressed()[0]:
-                    m_x, m_y = event.pos
+                    m_x = pygame.mouse.get_pos()[0]
                     if m_x < WIDTH:
                         for i in range(8):
                             for j in range(8):
@@ -246,17 +247,18 @@ def main():
                                                 for move in board.board[i][j].get_valid_moves(board):
                                                     if board.is_legal_move(turn, (selected_pos[0], selected_pos[1]), move):
                                                         valid_moves.append(move)
-                                        # print(valid_moves)
 
                 elif pygame.mouse.get_pressed()[2]:
-                    for j in range(8):
-                        for i in range(8):
-                            m_x, m_y = pygame.mouse.get_pos()
-                            if onclick(i * W, j * W, m_x, m_y):
-                                if marked_pos[i][j] == 1:
-                                    marked_pos[i][j] = 0
-                                else:
-                                    marked_pos[i][j] = 1
+                    m_x = pygame.mouse.get_pos()[0]
+                    if m_x < WIDTH:
+                        for j in range(8):
+                            for i in range(8):
+                                m_x, m_y = pygame.mouse.get_pos()
+                                if onclick(i * W, j * W, m_x, m_y):
+                                    if marked_pos[i][j] == 1:
+                                        marked_pos[i][j] = 0
+                                    else:
+                                        marked_pos[i][j] = 1
 
             if event.type == pygame.MOUSEBUTTONUP:
                 m_x, m_y = event.pos
@@ -324,6 +326,8 @@ def main():
                                                                 board.board[3][0].castled = True
 
                                         if isinstance(board.board[x][y], Pawn):
+                                            if y == 7 or y == 0:
+                                                board.board[x][y].promote()
                                             board.board[x][y].first = False
                                             if board.board[x][y].is_move_en_passant(selected_pos, en_passant):
                                                 if turn == BLACK:
@@ -335,6 +339,7 @@ def main():
                                             en_passant = (x, y)
                                         else:
                                             en_passant = ()
+
                                         if board.check(BLACK):
                                             print("black checks!")
                                         if board.check(WHITE):
@@ -366,9 +371,10 @@ def main():
                         else:
                             board.board[selected_pos[0]][selected_pos[1]].change_pos((selected_pos[0], selected_pos[1]))
                 else:
-                    board.board[selected_pos[0]][selected_pos[1]].change_pos(selected_pos)
-                board.set_every_pos()
+                    if selected_pos:
+                        board.board[selected_pos[0]][selected_pos[1]].change_pos(selected_pos)
                 valid_moves = []
+                board.set_every_pos()
                 selected_pos = ()
                 board.unselectall()
 

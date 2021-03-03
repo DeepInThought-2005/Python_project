@@ -175,7 +175,7 @@ class Board:
 
 
     def checkmate(self, turn):
-        king_pos = self.get_king_pos(self.change_turn(turn))
+        king_pos = self.get_king_pos(turn)
         danger_moves = self.get_danger_moves(turn)
         checkers = self.get_checkers(turn)
         defend_moves = self.get_danger_moves(self.change_turn(turn), for_checkmate=True)
@@ -193,17 +193,19 @@ class Board:
             if len(checkers) != 2:
                 for checker in checkers:
                     if checker in defend_moves:
+                        print("False1")
                         return False
 
             # if king can move
             for move in valid_king_moves:
-                if self.is_legal_move(turn, king_pos, move):
+                if move not in danger_moves:
                     return False
 
             # if something can block
             if len(checkers) != 2:
                 for move in defend_moves:
                     if self.is_legal_move(turn, move[0], move[1], for_checkmate=True):
+                        print("False3")
                         return False
 
             return True
