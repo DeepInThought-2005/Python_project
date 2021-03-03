@@ -173,6 +173,28 @@ class Board:
 
         return False
 
+    def stalemate(self, turn):
+        if not self.check(turn):
+            valid_king_moves = []
+            danger_moves = self.get_danger_moves(turn)
+            for i in range(8):
+                for j in range(8):
+                    if isinstance(self.board[i][j], King):
+                        if turn != self.board[i][j].color:
+                            for move in self.board[i][j].get_valid_moves(self):
+                                valid_king_moves.append(move)
+            valid_moves = self.get_valid_moves(self.change_turn(turn))
+            print(valid_moves)
+
+            # if king can move
+            print(len(valid_moves), len(valid_king_moves))
+            if len(valid_moves) - len(valid_king_moves) == 0:
+                for move in valid_king_moves:
+                    if move not in danger_moves:
+                        return False
+                return True
+
+
 
     def checkmate(self, turn):
         king_pos = self.get_king_pos(turn)
@@ -199,7 +221,8 @@ class Board:
             # if king can move
             for move in valid_king_moves:
                 if move not in danger_moves:
-                    return False
+                    if self.is_legal_move(self.change_turn(turn), king_pos, move):
+                        return False
 
             # if something can block
             if len(checkers) != 2:

@@ -140,7 +140,7 @@ def onclick(x, y, m_x, m_y):
     return False
 
 
-def game_over(win, turn, board, tie=False):
+def game_over(win, turn, board, tie=False, stalemate=False):
     START_END.play()
     turn = change_turn(turn)
     # win.fill(black)
@@ -159,6 +159,8 @@ def game_over(win, turn, board, tie=False):
     hint_font = pygame.font.SysFont("times", 60)
     if tie:
         text = text_font.render("Draw!", 1, red)
+    elif stalemate:
+        text = text_font.render(change_turn(turn) + ' stalemates!', 1, red)
     else:
         text = text_font.render(turn + ' checkmates!', 1, red)
     hint = hint_font.render("click anywhere to continue...", 1, red)
@@ -177,7 +179,7 @@ def game_over(win, turn, board, tie=False):
 def main():
     win = pygame.display.set_mode((WIDTH + 300, HEIGHT))
     pygame.display.set_caption("ChessL")
-    board = Board(fen="6k1/4nppp/8/8/8/8/5PPP/1Q4K1 w")#6k1/4rppp/8/8/8/8/5PPP/1Q4K1 w
+    board = Board(fen="")#6k1/4rppp/8/8/8/8/5PPP/1Q4K1 w
     clock = pygame.time.Clock()
     selected_pos = ()
     marked_pos = [[0] * 8 for _ in range(8)]
@@ -351,6 +353,14 @@ def main():
                                         if board.checkmate(WHITE):
                                             print("white checkmate!")
                                             game_over(win, turn, board)
+                                            main()
+                                        if board.stalemate(WHITE):
+                                            print("black stalemate!")
+                                            game_over(win, turn, board, stalemate=True)
+                                            main()
+                                        if board.stalemate(BLACK):
+                                            print("white stalemate!")
+                                            game_over(win, turn, board, stalemate=True)
                                             main()
                                         board.played_moves.append(prev_board)
                                         if board.returned_moves:
