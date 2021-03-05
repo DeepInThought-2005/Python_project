@@ -791,9 +791,6 @@ class Pawn(Piece):
                     return True
             return False
 
-
-
-
     def promote(self):
         self.promoted = True
         self.sign = 'Q'

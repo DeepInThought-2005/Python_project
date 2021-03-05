@@ -171,7 +171,6 @@ class Game:
 
                         # check game result
                         result = self.check_gameover(self.turn)
-                        print(result)
                         if result == CHECKMATE:
                             self.game_over(win)
                             self.gameover = True
@@ -183,7 +182,6 @@ class Game:
                             self.gameover = True
 
                         self.change_turn()
-                        print(self.turn)
 
                         print()
                         self.board.print_board()
@@ -230,11 +228,12 @@ class Game:
     def maybe_enpassant(self, selected_pos, moved_pos):
         x, y = moved_pos
         if self.board.board[x][y].is_move_en_passant(selected_pos, self.en_passant_pos):
-            if self.turn == BLACK:
-                self.board.board[x][y - 1] = 0
-            else:
-                self.board.board[x][y + 1] = 0
-            CAPTURE.play()
+            if moved_pos[0] == self.en_passant_pos[0]:
+                if self.turn == BLACK:
+                    self.board.board[x][y - 1] = 0
+                else:
+                    self.board.board[x][y + 1] = 0
+                CAPTURE.play()
 
 
     def maybe_castles(self, selected_pos, moved_pos):

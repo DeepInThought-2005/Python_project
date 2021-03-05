@@ -213,7 +213,6 @@ class Board:
             if len(checkers) != 2:
                 for checker in checkers:
                     if checker in defend_moves:
-                        print("False1")
                         return False
 
             # if king can move
@@ -226,7 +225,6 @@ class Board:
             if len(checkers) != 2:
                 for move in defend_moves:
                     if move in danger_moves:
-                        print("False3")
                         return False
 
             return True

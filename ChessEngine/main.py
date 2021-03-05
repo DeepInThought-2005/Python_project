@@ -166,7 +166,10 @@ def main():
                             game.selected_pos = (x, y)
                             game.board.board[x][y].selected = True
                             if game.turn == game.board.board[x][y].color:
-                                valid_moves = game.board.board[x][y].get_valid_moves(game.board)
+                                if isinstance(game.board.board[x][y], Pawn):
+                                    valid_moves = game.board.board[x][y].get_valid_moves(game.board, en_p=game.en_passant_pos)
+                                else:
+                                    valid_moves = game.board.board[x][y].get_valid_moves(game.board)
                                 moves = []
                                 for move in valid_moves:
                                     if game.board.is_legal_move(game.turn, (x, y), move):
