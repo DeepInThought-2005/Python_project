@@ -208,7 +208,10 @@ class Game:
 
     def mark(self, pos):
         x, y = pos
-        self.marked_pos[x][y] = 1
+        if self.marked_pos[x][y] == 1:
+            self.marked_pos[x][y] = 0
+        else:
+            self.marked_pos[x][y] = 1
 
     def change_turn(self):
         if self.turn == WHITE:
