@@ -13,7 +13,13 @@ There are
 3. Tic Tac Toe [Have fun ;)]
 4. Gobang(come from Tic Tac Toe), with Undo Redo, pretty cool!
 5. Flappybird (Very very object oriented programming, it made a lot of fun for me by making this game!)
-7. !!! Chess Engine !!! (still working on it 3. Day)
-    - Every rules but en passant in chess are programmed in(include check, checkmate, move restriction and so on)!
-    - Able to castle; to move with drag & drop; mark with right click, but not arrow; load fen; Promotion; En passant and much more!
-    - not abled: nothing yet... everything fixed
+7. !!! Chess Engine !!! 
+    - Very object oriented Programming, the best Programm i've ever wrote and i am proud of it
+    - Every rules in chess are programmed in (include check, checkmate, stalemate, en passant, move restriction and so on...)!
+    - Able to castle; 
+    - Able to move with drag & drop; 
+    - Able to mark with right click; 
+    - Able to load fen like this("r1bqk2r/1pppbppp/p1n2n2/4p3/B3P3/5N2/PPPP1PPP/RNBQR1K1 b", 
+            You just need to give this fen code where the board object is initialized) 
+    - Promotion (to a queen); 
+    - so on...
