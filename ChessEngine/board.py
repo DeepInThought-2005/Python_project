@@ -184,10 +184,8 @@ class Board:
                             for move in self.board[i][j].get_valid_moves(self):
                                 valid_king_moves.append(move)
             valid_moves = self.get_valid_moves(self.change_turn(turn))
-            print(valid_moves)
 
             # if king can move
-            print(len(valid_moves), len(valid_king_moves))
             if len(valid_moves) - len(valid_king_moves) == 0:
                 for move in valid_king_moves:
                     if move not in danger_moves:
@@ -227,7 +225,7 @@ class Board:
             # if something can block
             if len(checkers) != 2:
                 for move in defend_moves:
-                    if self.is_legal_move(turn, move[0], move[1], for_checkmate=True):
+                    if move in danger_moves:
                         print("False3")
                         return False
 
@@ -258,6 +256,12 @@ class Board:
 
     def draw(self, win):
         win.blit(self.img, (0, 0))
+
+    def draw_pieces(self, win):
+        for i in range(8):
+            for j in range(8):
+                if self.board[i][j] != 0:
+                    self.board[i][j].draw(win)
 
     def get_king_pos(self, turn):
         for i in range(8):
@@ -361,9 +365,7 @@ class Board:
                 for j in range(8):
                     if bo[i][j] != 0:
                         self.board[i][j] = bo[i][j].__class__(i, j, bo[i][j].color, bo[i][j].sign)
-            self.print_board()
             self.set_every_pos()
-            print(bo)
 
     def undo_move(self):
         if self.played_moves:
@@ -374,9 +376,7 @@ class Board:
                 for j in range(8):
                     if bo[i][j] != 0:
                         self.board[i][j] = bo[i][j].__class__(i, j, bo[i][j].color, bo[i][j].sign)
-            self.print_board()
             self.set_every_pos()
-            print(bo)
 
     def set_every_pos(self):
         for i in range(8):
@@ -424,20 +424,20 @@ class Board:
         else:
             if not isinstance(tboard.board[end[0]][end[1]], King):
                 tboard.move(start, end)
-                # turn = self.change_turn(turn)
+                turn = self.change_turn(turn)
                 if tboard.check(turn):
                     tboard.move(end, start)
                     return False
                 tboard.move(end, start)
                 return True
 
-    def draw_valid_moves(self, win, moves, board, turn):
+    def draw_valid_moves(self, win, moves, turn):
         if moves:
             for move in moves:
-                if board[move[0]][move[1]] == 0:
+                if self.board[move[0]][move[1]] == 0:
                     pygame.draw.circle(win, hell_gray, (move[0] * W + W // 2, move[1] * W + W // 2), W // 5)
                 else:
-                    if turn != board[move[0]][move[1]].color:
+                    if turn != self.board[move[0]][move[1]].color:
                         pygame.draw.circle(win, hell_gray, (move[0] * W + W // 2, move[1] * W + W // 2), W // 2, 8)
 
 

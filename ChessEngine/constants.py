@@ -31,6 +31,9 @@ BLACK = 'black'
 WHITE = 'white'
 O_O = 'o-o'
 O_O_O = 'o-o-o'
+CHECKMATE = "checkmate"
+STALEMATE = "stalemate"
+DRAW = "draw"
 
 # Piece style
 GAMEROOM = "GameRoom"

@@ -69,7 +69,7 @@ class Piece:
         self.set_coord()
 
     def onclick(self, m_x, m_y):
-        if m_x > self.x and m_x < self.x + W and m_y > self.y and m_y < self.y + W:
+        if m_x >= self.x and m_x <= self.x + W and m_y >= self.y and m_y <= self.y + W:
             return True
         return False
 
@@ -295,7 +295,7 @@ class King(Piece):
         self.s_castled = False # o-o
         self.l_castled = False # o-o-o
 
-    def is_move_castle(self, x, y):
+    def how_castles(self, x, y):
         result = ""
         if self.row == y:
             if self.col - x > 1:
