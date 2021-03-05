@@ -314,11 +314,11 @@ class Board:
                         if for_checkmate:
                             if isinstance(self.board[i][j], Pawn):
                                 for move in self.board[i][j].get_valid_moves(self):
-                                    moves.append([(i, j), move])
+                                    moves.append(move)
                             else:
                                 if not isinstance(self.board[i][j], King):
                                     for move in self.board[i][j].get_danger_moves(self):
-                                        moves.append([(i, j), move])
+                                        moves.append(move)
 
                         if not for_checkmate:
                             for move in self.board[i][j].get_danger_moves(self):

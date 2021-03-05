@@ -36,7 +36,7 @@ class Game:
         if tie:
             text = text_font.render("Draw!", 1, red)
         elif stalemate:
-            text = text_font.render(self.turn + ' stalemated!', 1, red)
+            text = text_font.render(self.turn + ' stalemates!', 1, red)
         else:
             text = text_font.render(self.turn + ' checkmates!', 1, red)
         hint = hint_font.render("click anywhere to continue...", 1, red)
