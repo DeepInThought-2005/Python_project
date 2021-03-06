@@ -199,7 +199,6 @@ class Board:
         danger_moves = self.get_danger_moves(turn)
         checkers = self.get_checkers(turn)
         defend_moves = self.get_danger_moves(self.change_turn(turn), for_checkmate=True)
-        # print(defend_moves)
         valid_king_moves = []
         for i in range(8):
             for j in range(8):
@@ -212,20 +211,26 @@ class Board:
             # if checker can be captured
             if len(checkers) != 2:
                 for checker in checkers:
-                    if checker in defend_moves:
-                        return False
+                    for d_m in defend_moves:
+                        if checker == d_m[1]:
+                            print("Checker can be captured")
+                            return False
 
             # if king can move
             for move in valid_king_moves:
                 if move not in danger_moves:
                     if self.is_legal_move(self.change_turn(turn), king_pos, move):
+                        print("King has safe square")
                         return False
 
             # if something can block
             if len(checkers) != 2:
+                checker_danger_moves = self.board[checkers[0][0]][checkers[0][1]].get_danger_moves(self)
                 for move in defend_moves:
-                    if move in danger_moves:
-                        return False
+                    if move[1] in checker_danger_moves:
+                        if self.is_legal_move(self.change_turn(turn), move[0], move[1], for_checkmate=True):
+                            print("The check can be blocked")
+                            return False
 
             return True
 
@@ -314,11 +319,11 @@ class Board:
                         if for_checkmate:
                             if isinstance(self.board[i][j], Pawn):
                                 for move in self.board[i][j].get_valid_moves(self):
-                                    moves.append(move)
+                                    moves.append([(i, j), move])
                             else:
                                 if not isinstance(self.board[i][j], King):
                                     for move in self.board[i][j].get_danger_moves(self):
-                                        moves.append(move)
+                                        moves.append([(i, j), move])
 
                         if not for_checkmate:
                             for move in self.board[i][j].get_danger_moves(self):
@@ -353,28 +358,6 @@ class Board:
             return O_O_O
         else:
             return chr(ord('a') + pos1[0]) + str(8 - pos1[1]) + chr(ord('a') + pos2[0]) + str(8 - pos2[1])
-
-    def redo_moves(self):
-        if self.returned_moves:
-            bo = self.returned_moves.pop()
-            self.board = [[0] * 8 for _ in range(8)]
-            self.played_moves.append(self.board[:])
-            for i in range(8):
-                for j in range(8):
-                    if bo[i][j] != 0:
-                        self.board[i][j] = bo[i][j].__class__(i, j, bo[i][j].color, bo[i][j].sign)
-            self.set_every_pos()
-
-    def undo_move(self):
-        if self.played_moves:
-            bo = self.played_moves.pop()
-            self.returned_moves.append(self.board[:])
-            self.board = [[0] * 8 for _ in range(8)]
-            for i in range(8):
-                for j in range(8):
-                    if bo[i][j] != 0:
-                        self.board[i][j] = bo[i][j].__class__(i, j, bo[i][j].color, bo[i][j].sign)
-            self.set_every_pos()
 
     def set_every_pos(self):
         for i in range(8):

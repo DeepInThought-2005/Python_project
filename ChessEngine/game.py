@@ -23,6 +23,8 @@ class Game:
         self.en_passant_pos = ()
         self.valid_moves = []
         self.marked_pos = [[0] * 8 for _ in range(8)]
+        self.undos = [] # the moves which was played
+        self.redos = [] # when -> pressed, append undos.pop() to redos
         self.move_text = ""
 
     def game_over(self, win, tie=False, stalemate=False):
@@ -131,6 +133,52 @@ class Game:
 
         pygame.display.update()
 
+    def undo_move(self):
+        if self.undos:
+            bo = self.board.board
+            p1, p2 = self.undos.pop()
+            self.redos.append((p1, p2))
+            print((p1.col, p1.row), p2)
+            self.board.board[p1.col][p1.row] = p1
+            if isinstance(p2, tuple):
+                self.last_move = [(p1.col, p1.row), (p2[0], p2[1])]
+                self.board.board[p2[0]][p2[1]] = 0
+            else:
+                self.last_move = [(p1.col, p1.row), (p2.col, p2.row)]
+                self.board.board[p2.col][p2.row] = p2
+
+            if isinstance(p1, Pawn):
+                if p1.row == 6 or p1.row == 1:
+                    self.board.board[p1.col][p1.row].first = True
+
+            self.change_turn()
+
+
+    def redo_move(self):
+        if self.redos:
+            p1, p2 = self.redos.pop()
+            self.undos.append((p1, p2))
+            print(p1, p2)
+            if isinstance(p2, tuple):
+                self.last_move = [(p1.col, p1.row), (p2[0], p2[1])]
+                self.board.board[p2[0]][p2[1]] = p1.__class__(p2[0], p2[1], p1.color, p1.sign)
+                self.board.board[p1.col][p1.row] = 0
+            else:
+                self.last_move = [(p1.col, p1.row), (p2.col, p2.row)]
+                self.board.board[p1.col][p1.row] = 0
+                self.board.board[p2.col][p2.row] = p1.__class__(p2.col, p2.row, p1.color, p1.sign)
+
+
+            if isinstance(p1, Pawn):
+                if isinstance(p2, tuple):
+                    if p2[0] == 7 or p2[1] == 0:
+                        self.board.board[p2[0]][p2[1]].promote()
+                else:
+                    if p2.row == 7 or p2.row == 0:
+                        self.board.board[p2.col][p2.row].promote()
+
+            self.change_turn()
+
 
     def make_move(self, win, start, end):
         bo = self.board.board
@@ -143,6 +191,18 @@ class Game:
                             MOVE.play()
                         else:
                             CAPTURE.play()
+
+                        # the moves which can be undoed
+                        s_b = self.board.board[start[0]][start[1]]
+                        s_p = s_b.__class__(start[0], start[1], s_b.color, s_b.sign)
+                        e_b = self.board.board[end[0]][end[1]]
+                        e_p = None
+                        if e_b != 0:
+                            e_p = e_b.__class__(end[0], end[1], e_b.color, e_b.sign)
+                        else:
+                            e_p = (end[0], end[1])
+
+                        self.undos.append((s_p, e_p))
 
                         self.move_text = self.board.move(start, end)
                         if not self.started:
@@ -186,6 +246,10 @@ class Game:
                         print()
                         self.board.print_board()
                         print(self.move_text)
+                        if self.redos:
+                            if (s_p, e_p) != self.redos[-1]:
+                                self.redos = []
+
 
                     elif self.board.board[end[0]][end[1]].color == self.turn:
                         self.board.board[start[0]][start[1]].change_pos((start))

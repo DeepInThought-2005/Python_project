@@ -148,12 +148,10 @@ def main():
 
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT:
-                    game.board.undo_move()
-                    game.change_turn()
+                    game.undo_move()
 
                 if event.key == pygame.K_RIGHT:
-                    game.board.redo_moves()
-                    game.change_turn()
+                    game.redo_move()
 
             if event.type == pygame.MOUSEBUTTONDOWN:
                 m_x, m_y = event.pos
