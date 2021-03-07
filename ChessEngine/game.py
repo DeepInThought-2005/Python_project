@@ -8,8 +8,10 @@
 
 from board import *
 from constants import *
+from piece import *
 import pygame
-
+pygame.font.init()
+import random
 
 
 class Game:
@@ -26,6 +28,89 @@ class Game:
         self.undos = [] # the moves which was played
         self.redos = [] # when -> pressed, append undos.pop() to redos
         self.move_text = ""
+        self.moved = False
+        self.black_time = 15 * 60
+        self.white_time = 15 * 60
+        self.draw_valid_moves = True
+        self.AI_button = [(WIDTH + 50, 150, 100, 40), "AI - AI", pygame.USEREVENT + 1]
+        self.Human_Button = [(WIDTH + 50, 250, 180, 40), "HUMAN - AI", pygame.USEREVENT + 2]
+        self.HUMAN_AI = True
+        self.AI_AI = False
+
+
+    # AI part
+
+    def evaluate(self, max_color):
+        global board
+        if max_color == WHITE:
+            return board.white_score - board.black_score
+        else:
+            return board.black_score - board.white_score
+
+    def minimax(self, win, depth, alpha, beta, max_turn, max_color):
+        if depth == 0 or self.board.game_over():
+            return None
+
+        moves = self.board.get_valid_moves(self.turn)
+        valid_moves = []
+        for move in moves:
+            if self.board.is_legal_move(self.turn, move[0], move[1]):
+                valid_moves.append(move)
+        best_move = random.choice(valid_moves)
+
+        return best_move
+
+        # if max_turn == WHITE:
+        #     max_eval = -9999
+        #     for move in moves:
+        #         board.move(move[0], move[1])
+        #         current_eval = minimax(win, depth - 1, alpha, beta, BLACK, max_color)[1]
+        #         board.redo_moves()
+        #         board.print_board()
+        #         if current_eval > max_eval:
+        #             best_move = move
+        #         alpha = max(alpha, current_eval)
+        #         if beta <= alpha:
+        #             break
+        #     return best_move, max_eval
+        #
+        # else:
+        #     min_eval = 9999
+        #     for move in moves:
+        #         current_eval = minimax(win, depth - 1, alpha, beta, WHITE, max_color)[1]
+        #         board.redo_moves()
+        #         board.print_board()
+        #         if current_eval < min_eval:
+        #             min_eval  = current_eval
+        #             best_move = move
+        #         beta = min(beta, current_eval)
+        #         if beta <= alpha:
+        #             break
+        #     return best_move, min_eval
+
+
+    def every_button_pressend(self, m_x, m_y):
+        self.button_pressed(m_x, m_y, self.AI_button)
+        self.button_pressed(m_x, m_y, self.Human_Button)
+
+
+    def button_pressed(self, m_x, m_y, button):
+        if m_x > button[0][0] and m_x < button[0][0] + button[0][2] and \
+            m_y > button[0][1] and m_y < button[0][1] + button[0][3]:
+            pygame.event.post(pygame.event.Event(button[2]))
+
+
+    def draw_buttons(self, win):
+        pygame.draw.rect(win, WHITE, self.AI_button[0], 4)
+        pygame.draw.rect(win, WHITE, self.Human_Button[0], 4)
+        font = pygame.font.SysFont("Arial", 30)
+        text1 = font.render(self.AI_button[1], 1, BLACK)
+        text2 = font.render(self.Human_Button[1], 1, BLACK)
+        win.blit(text1, (self.AI_button[0][0] + self.AI_button[0][2] / 2 - text1.get_width() / 2,
+                         self.AI_button[0][1] + self.AI_button[0][3] / 2 - text1.get_height() / 2))
+        win.blit(text2, (self.Human_Button[0][0] + self.Human_Button[0][2] / 2 - text2.get_width() / 2,
+                         self.Human_Button[0][1] + self.Human_Button[0][3] / 2 - text2.get_height() / 2))
+
 
     def game_over(self, win, tie=False, stalemate=False):
         START_END.play()
@@ -68,10 +153,10 @@ class Game:
                 pygame.draw.rect(win, hell_color, (x * W, y * W, W, W))
 
 
-    def draw_window(self, win, black_time, white_time):
+    def draw_window(self, win):
         win.fill(hell_green)
-        t1 = black_time
-        t2 = white_time
+        t1 = int(self.black_time)
+        t2 = int(self.white_time)
         formattime1 = str(t1 // 60) + ':' + str(t1 % 60)
         formattime2 = str(t2 // 60) + ':' + str(t2 % 60)
 
@@ -92,6 +177,9 @@ class Game:
         win.blit(text2, (WIDTH + 300 // 2 - text1.get_width() // 2, HEIGHT - 50 - text2.get_height() // 2))
         win.blit(text1, (WIDTH + 300 // 2 - text1.get_width() // 2, 10 + text1.get_height()))
 
+        # draw buttons
+        self.draw_buttons(win)
+
         move_txt = font1.render(self.move_text, 1, black)
         win.blit(move_txt, (WIDTH + 300 // 2 - move_txt.get_width() // 2, HEIGHT // 2 - move_txt.get_height() // 2))
 
@@ -103,7 +191,13 @@ class Game:
             self.draw_color(win, hell_orange, dark_orange, start)
             self.draw_color(win, hell_orange, dark_orange, end)
 
-        self.board.draw_valid_moves(win, self.valid_moves, self.turn)
+        # draw valid_moves
+        if self.draw_valid_moves:
+            self.board.draw_valid_moves(win, self.valid_moves, self.turn)
+
+        # draw selected
+        if self.selected_pos:
+            pygame.draw.rect(win, select_color, (self.selected_pos[0] * W, self.selected_pos[1] * W, W, W))
 
         # draw mark
         for i in range(8):
@@ -138,7 +232,6 @@ class Game:
             bo = self.board.board
             p1, p2 = self.undos.pop()
             self.redos.append((p1, p2))
-            print((p1.col, p1.row), p2)
             self.board.board[p1.col][p1.row] = p1
             if isinstance(p2, tuple):
                 self.last_move = [(p1.col, p1.row), (p2[0], p2[1])]
@@ -150,6 +243,38 @@ class Game:
             if isinstance(p1, Pawn):
                 if p1.row == 6 or p1.row == 1:
                     self.board.board[p1.col][p1.row].first = True
+                print(p1, p2)
+                if isinstance(p2, tuple) and abs(p2[0] - p1.col) == 1:
+                    if p1.color == WHITE:
+                        self.board.board[p2[0]][p2[1] + 1] = Pawn(p2[0], p2[1] + 1, self.board.change_turn(p1.color), 'P')
+                    else:
+                        self.board.board[p2[0]][p2[1] - 1] = Pawn(p2[0], p2[1] - 1, self.board.change_turn(p1.color), 'P')
+
+            # for castles
+            if isinstance(p1, King):
+                if isinstance(p2, tuple):
+                    if p1.color == WHITE:
+                        # for castles availible
+                        if abs(p1.col - p2[0]) == 2:
+                            self.board.board[4][7].castled = True
+
+                        if p1.col - p2[0] == -2:
+                            self.board.board[5][7] = 0
+                            self.board.board[7][7] = Rook(7, 7, p1.color, 'R')
+                        elif p1.col - p2[0] == 2:
+                            self.board.board[3][7] = 0
+                            self.board.board[0][7] = Rook(0, 7, p1.color, 'R')
+                    else:
+                        # for castles availible
+                        if abs(p1.col - p2[0]) == 2:
+                            self.board.board[4][0].castled = True
+
+                        if p1.col - p2[0] == -2:
+                            self.board.board[5][0] = 0
+                            self.board.board[7][0] = Rook(7, 0, p1.color, 'R')
+                        elif p1.col - p2[0] == 2:
+                            self.board.board[3][0] = 0
+                            self.board.board[0][0] = Rook(0, 0, p1.color, 'R')
 
             self.change_turn()
 
@@ -171,11 +296,38 @@ class Game:
 
             if isinstance(p1, Pawn):
                 if isinstance(p2, tuple):
-                    if p2[0] == 7 or p2[1] == 0:
+                    self.board.board[p2[0]][p2[1]].first = False
+                    if p2[1] == 7 or p2[1] == 0:
                         self.board.board[p2[0]][p2[1]].promote()
                 else:
+                    self.board.board[p2.col][p2.row].first = False
                     if p2.row == 7 or p2.row == 0:
                         self.board.board[p2.col][p2.row].promote()
+
+                if isinstance(p2, tuple) and abs(p2[0] - p1.col) == 1:
+                    if p1.color == WHITE:
+                        self.board.board[p2[0]][p2[1] + 1] = 0
+                    else:
+                        self.board.board[p2[0]][p2[1] - 1] = 0
+
+            # for castles
+            if isinstance(p1, King):
+                if isinstance(p2, tuple):
+                    if p1.color == WHITE:
+                        if p1.col - p2[0] == -2:
+                            self.board.board[7][7] = 0
+                            self.board.board[5][7] = Rook(5, 7, p1.color, 'R')
+                        elif p1.col - p2[0] == 2:
+                            self.board.board[0][7] = 0
+                            self.board.board[3][7] = Rook(3, 7, p1.color, 'R')
+                    else:
+
+                        if p1.col - p2[0] == -2:
+                            self.board.board[7][0] = 0
+                            self.board.board[5][0] = Rook(5, 0, p1.color, 'R')
+                        elif p1.col - p2[0] == 2:
+                            self.board.board[0][0] = 0
+                            self.board.board[3][0] = Rook(3, 0, p1.color, 'R')
 
             self.change_turn()
 
@@ -187,6 +339,8 @@ class Game:
             if start != end:
                 if end in self.valid_moves:
                     if bo[end[0]][end[1]] == 0 or bo[end[0]][end[1]].color != self.turn:
+                        self.moved = True
+
                         if bo[end[0]][end[1]] == 0:
                             MOVE.play()
                         else:
@@ -250,6 +404,41 @@ class Game:
                             if (s_p, e_p) != self.redos[-1]:
                                 self.redos = []
 
+                        # AI vs AI
+
+                        if self.AI_AI:
+                            self.draw_valid_moves = False
+                            for event in pygame.event.get():
+                                if event.type == pygame.QUIT:
+                                    quit()
+
+                                m_x, m_y = pygame.mouse.get_pos()
+                                self.every_button_pressend(m_x, m_y)
+
+                                if event.type == self.AI_button[2]:
+                                    print("AI")
+                                    if self.AI_AI:
+                                        self.AI_AI = False
+                                    else:
+                                        self.AI_AI = True
+
+                                if event.type == self.Human_Button[2]:
+                                    print("Human")
+                                    if self.HUMAN_AI:
+                                        self.HUMAN_AI = False
+                                    else:
+                                        self.HUMAN_AI = True
+
+                            best_move = self.minimax(win, 5, 0, 0, self.turn, WHITE)
+                            self.get_valid_moves(best_move[0][0], best_move[0][1])
+                            print(best_move)
+
+                            self.board.set_every_pos()
+                            self.selected_pos = best_move[0]
+                            self.draw_window(win)
+                            self.make_move(win, best_move[0], best_move[1])
+
+                        # ...
 
                     elif self.board.board[end[0]][end[1]].color == self.turn:
                         self.board.board[start[0]][start[1]].change_pos((start))
@@ -260,6 +449,17 @@ class Game:
         else:
             if self.selected_pos:
                 self.board.board[start[0]][start[1]].change_pos((start))
+
+    def get_valid_moves(self, x, y):
+        if isinstance(self.board.board[x][y], Pawn):
+            valid_moves = self.board.board[x][y].get_valid_moves(self.board, en_p=self.en_passant_pos)
+        else:
+            valid_moves = self.board.board[x][y].get_valid_moves(self.board)
+        moves = []
+        for move in valid_moves:
+            if self.board.is_legal_move(self.turn, (x, y), move):
+                moves.append(move)
+        self.valid_moves = moves
 
 
     def get_onclick(self, m_x, m_y):

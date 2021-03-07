@@ -74,7 +74,7 @@ class Piece:
         return False
 
     def __str__(self):
-        return self.sign
+        return str(self.sign + str(self.col) + str(self.row))
 
 
 class Queen(Piece):

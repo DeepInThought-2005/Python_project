@@ -346,6 +346,7 @@ class Board:
                     print('.', end=' ')
             print()
 
+
     def move(self, pos1, pos2, castles=""):
         tboard = self.board[:]
         tboard[pos1[0]][pos1[1]].change_pos(pos2)

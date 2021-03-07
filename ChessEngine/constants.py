@@ -15,10 +15,11 @@ dark_red = (255, 0, 20)
 green = (119, 148, 85)
 white = (235, 235, 208)
 hell_green = (153, 204, 0)
-hell_gray = (192, 192, 192)
+hell_gray = (0, 128, 128)
 hell_orange = (255, 204, 0)
 dark_orange = (255, 204, 80)
 checked = (255, 128, 128)
+select_color = (0, 255, 255)
 
 # SOUND CONSTANTS
 MOVE = pygame.mixer.Sound(os.path.join("Sound", "Move.ogg"))

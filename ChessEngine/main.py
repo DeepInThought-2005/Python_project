@@ -11,101 +11,6 @@ pygame.font.init()
 
 a_cool_position = "5B1k/1R6/5p1K/1n1r3p/8/8/8/5b2 w"
 
-# AI part
-# def evaluate(max_color):
-#     global board
-#     if max_color == WHITE:
-#         return board.white_score - board.black_score
-#     else:
-#         return board.black_score - board.white_score
-#
-#
-# def minimax(win, depth, alpha, beta, max_turn, max_color):
-#     global board, turn
-#     if depth == 0 or board.game_over():
-#         return None, evaluate(max_color)
-#     moves = []
-#     for i in range(8):
-#         for j in range(8):
-#             if board.board[i][j] != 0:
-#                 if board.board[i][j].color == max_turn:
-#                     if isinstance(board.board[i][j], Pawn):
-#                         for move in board.board[i][j].get_valid_moves(board, en_p=en_passant):
-#                             if board.is_legal_move(turn, (i, j), move):
-#                                 moves.append([(i, j), move])
-#                     else:
-#                         for move in board.board[i][j].get_valid_moves(board):
-#                             if board.is_legal_move(turn, (i, j), move):
-#                                 moves.append([(i, j), move])
-#
-#     best_move = random.choice(moves)
-#
-#     if max_turn == WHITE:
-#         max_eval = -9999
-#         for move in moves:
-#             board.move(move[0], move[1])
-#             current_eval = minimax(win, depth - 1, alpha, beta, BLACK, max_color)[1]
-#             board.redo_moves()
-#             board.print_board()
-#             if current_eval > max_eval:
-#                 best_move = move
-#             alpha = max(alpha, current_eval)
-#             if beta <= alpha:
-#                 break
-#         return best_move, max_eval
-#
-#     else:
-#         min_eval = 9999
-#         for move in moves:
-#             AI_move(win, move[0], move[1])
-#             current_eval = minimax(win, depth - 1, alpha, beta, WHITE, max_color)[1]
-#             board.redo_moves()
-#             board.print_board()
-#             if current_eval < min_eval:
-#                 min_eval  = current_eval
-#                 best_move = move
-#             beta = min(beta, current_eval)
-#             if beta <= alpha:
-#                 break
-#         return best_move, min_eval
-
-
-# def game_over(win, turn, board, tie=False, stalemate=False):
-#     START_END.play()
-#     turn = change_turn(turn)
-#     # win.fill(black)
-#     board.set_every_pos()
-#     # board.set_every_coord()
-#     board.unselectall()
-#
-#     # draw the board again
-#     board.draw(win)
-#     for i in range(8):
-#         for j in range(8):
-#             if board.board[i][j] != 0:
-#                 board.board[i][j].draw(win)
-#
-#     text_font = pygame.font.SysFont("times", 100)
-#     hint_font = pygame.font.SysFont("times", 60)
-#     if tie:
-#         text = text_font.render("Draw!", 1, red)
-#     elif stalemate:
-#         text = text_font.render(change_turn(turn) + ' stalemates!', 1, red)
-#     else:
-#         text = text_font.render(turn + ' checkmates!', 1, red)
-#     hint = hint_font.render("click anywhere to continue...", 1, red)
-#     win.blit(text, (WIDTH // 2 - text.get_width() // 2, HEIGHT // 2 - text.get_height() // 2))
-#     win.blit(hint, (WIDTH // 2 - hint.get_width() // 2, HEIGHT // 4 * 3 - text.get_height() // 2))
-#     pygame.display.update()
-#     clicked = False
-#     while not clicked:
-#         for event in pygame.event.get():
-#             if event.type == pygame.QUIT:
-#                 quit()
-#             if event.type == pygame.MOUSEBUTTONDOWN:
-#                 clicked = True
-
-
 def get_square_onclick(m_x, m_y):
     for j in range(8):
         for i in range(8):
@@ -113,11 +18,16 @@ def get_square_onclick(m_x, m_y):
                 return i, j
 
 def main():
+    def todo_after_move():
+        game.valid_moves = []
+        game.board.set_every_pos()
+        game.selected_pos = ()
+        game.board.unselectall()
+
+
     win = pygame.display.set_mode((WIDTH + 300, HEIGHT))
     pygame.display.set_caption("ChessL")
     clock = pygame.time.Clock()
-    black_time = 15 * 60
-    white_time = 15 * 60
     selected = False
     start_time = time.time()
 
@@ -126,25 +36,39 @@ def main():
     run = True
     while run:
         clock.tick(60)
-        if game.gameover:
-            main()
+        # if game.gameover:
+        #     main()
         if game.started:
             if game.turn == WHITE:
-                white_time -= time.time() - start_time
+                game.white_time -= time.time() - start_time
             else:
-                black_time -= time.time() - start_time
+                game.black_time -= time.time() - start_time
             start_time = time.time()
         else:
             start_time = time.time()
 
-        game.draw_window(win, int(black_time), int(white_time))
+        game.draw_window(win)
         game.board.get_score()
-
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
                 pygame.quit()
+
+            if event.type == game.AI_button[2]:
+                print("AI")
+                if game.AI_AI:
+                    game.AI_AI = False
+                else:
+                    game.AI_AI = True
+
+            if event.type == game.Human_Button[2]:
+                print("Human")
+                if game.HUMAN_AI:
+                    game.HUMAN_AI = False
+                else:
+                    game.HUMAN_AI = True
+
 
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT:
@@ -153,26 +77,24 @@ def main():
                 if event.key == pygame.K_RIGHT:
                     game.redo_move()
 
+                if event.key == pygame.K_r:
+                    main()
+
             if event.type == pygame.MOUSEBUTTONDOWN:
                 m_x, m_y = event.pos
+                game.every_button_pressend(m_x, m_y)
                 if m_x < WIDTH:
                     x, y = game.get_onclick(m_x, m_y)
                     if pygame.mouse.get_pressed()[0]:
                         game.marked_pos = [[0] * 8 for _ in range(8)]
                         if x != -1:
+                            game.draw_valid_moves = True
                             selected = True
+                            game.moved = False
                             game.selected_pos = (x, y)
                             game.board.board[x][y].selected = True
                             if game.turn == game.board.board[x][y].color:
-                                if isinstance(game.board.board[x][y], Pawn):
-                                    valid_moves = game.board.board[x][y].get_valid_moves(game.board, en_p=game.en_passant_pos)
-                                else:
-                                    valid_moves = game.board.board[x][y].get_valid_moves(game.board)
-                                moves = []
-                                for move in valid_moves:
-                                    if game.board.is_legal_move(game.turn, (x, y), move):
-                                        moves.append(move)
-                                game.valid_moves = moves
+                                game.get_valid_moves(x, y)
 
                     x, y = get_square_onclick(m_x, m_y)
                     if pygame.mouse.get_pressed()[2]:
@@ -186,11 +108,27 @@ def main():
                     x, y = get_square_onclick(m_x, m_y)
                     if game.selected_pos:
                         game.make_move(win, game.selected_pos, (x, y))
+                else:
+                    if game.selected_pos:
+                        print(x, y, game.selected_pos)
+                        game.board.board[x][y].change_pos((x, y))
 
-                game.valid_moves = []
-                game.board.set_every_pos()
-                game.selected_pos = ()
-                game.board.unselectall()
+
+                todo_after_move()
+                game.draw_window(win)
+
+                # AI plays human
+
+                if game.HUMAN_AI:
+                    if game.moved:
+                        best_move = game.minimax(win, 5, 0, 0, game.turn, WHITE)
+                        if best_move:
+                            game.get_valid_moves(best_move[0][0], best_move[0][1])
+                            game.make_move(win, best_move[0], best_move[1])
+                            todo_after_move()
+                            game.moved = False
+
+                # ...
 
             if event.type == pygame.MOUSEMOTION:
                 m_x, m_y = event.pos
