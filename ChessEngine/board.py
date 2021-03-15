@@ -34,7 +34,8 @@ class Board:
                     if self.board[i][j].color == WHITE:
                         self.white_score += self.piece_values[self.board[i][j].sign]
                     else:
-                        self.white_score += self.piece_values[self.board[i][j].sign]
+                        self.black_score += self.piece_values[self.board[i][j].sign]
+
 
     def load_FEN(self, fen):
         fen = fen.replace(' ', '')

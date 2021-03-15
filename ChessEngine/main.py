@@ -9,7 +9,6 @@ from game import Game
 pygame.mixer.init()
 pygame.font.init()
 
-a_cool_position = "5B1k/1R6/5p1K/1n1r3p/8/8/8/5b2 w"
 
 def get_square_onclick(m_x, m_y):
     for j in range(8):
@@ -108,10 +107,27 @@ def main():
                     x, y = get_square_onclick(m_x, m_y)
                     if game.selected_pos:
                         game.make_move(win, game.selected_pos, (x, y))
+
+                    # check game result
+                    game.change_turn()
+                    result = game.check_gameover(game.turn)
+                    if result == CHECKMATE:
+                        game.game_over(win)
+                        game.gameover = True
+                    elif result == STALEMATE:
+                        game.game_over(win, stalemate=True)
+                        game.gameover = True
+                    elif result == DRAW:
+                        game.game_over(win, tie=True)
+                        game.gameover = True
+
+                    game.change_turn()
+
                 else:
                     if game.selected_pos:
                         print(x, y, game.selected_pos)
                         game.board.board[x][y].change_pos((x, y))
+
 
 
                 todo_after_move()
@@ -121,10 +137,12 @@ def main():
 
                 if game.HUMAN_AI:
                     if game.moved:
-                        best_move = game.minimax(win, 5, 0, 0, game.turn, WHITE)
+                        maxi_color = game.get_maxi_color()
+                        best_move = game.minimax(win, 2, 0, 0, maxi_color)
+                        print(best_move)
                         if best_move:
-                            game.get_valid_moves(best_move[0][0], best_move[0][1])
-                            game.make_move(win, best_move[0], best_move[1])
+                            game.get_valid_moves(best_move[0][0][0], best_move[0][0][1])
+                            game.make_move(win, best_move[0][0], best_move[0][1])
                             todo_after_move()
                             game.moved = False
 

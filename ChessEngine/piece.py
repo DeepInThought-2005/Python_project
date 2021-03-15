@@ -411,18 +411,19 @@ class King(Piece):
 
         # CASTLES
         if self.color == BLACK:
-            if not self.s_castled:
-                if isinstance(tboard[7][0], Rook):
-                    if not tboard[7][0].castled and tboard[7][0].color == self.color:
-                        if tboard[5][0] == 0 and tboard[6][0] == 0 and not tboard[7][0].castled:
-                            moves.append((5, 0))
-                            moves.append((6, 0))
-            if not self.l_castled:
-                if isinstance(tboard[0][0], Rook):
-                    if not tboard[0][0].castled and tboard[0][0].color == self.color:
-                        if tboard[1][0] == 0 and tboard[2][0] == 0 and tboard[3][0] == 0 and not tboard[0][0].castled:
-                            moves.append((2, 0))
-                            moves.append((3, 0))
+            if not board.check(self.change_turn(self.color)):
+                if not self.s_castled:
+                    if isinstance(tboard[7][0], Rook):
+                        if not tboard[7][0].castled and tboard[7][0].color == self.color:
+                            if tboard[5][0] == 0 and tboard[6][0] == 0 and not tboard[7][0].castled:
+                                moves.append((5, 0))
+                                moves.append((6, 0))
+                if not self.l_castled:
+                    if isinstance(tboard[0][0], Rook):
+                        if not tboard[0][0].castled and tboard[0][0].color == self.color:
+                            if tboard[1][0] == 0 and tboard[2][0] == 0 and tboard[3][0] == 0 and not tboard[0][0].castled:
+                                moves.append((2, 0))
+                                moves.append((3, 0))
         else:
             if not board.check(self.change_turn(self.color)):
                 if not self.s_castled:

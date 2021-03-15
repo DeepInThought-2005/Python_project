@@ -12,6 +12,11 @@ from piece import *
 import pygame
 pygame.font.init()
 import random
+import copy
+
+
+a_cool_position = "5B1k/1R6/5p1K/1n1r3p/8/8/8/5b2 w"
+
 
 
 class Game:
@@ -34,59 +39,81 @@ class Game:
         self.draw_valid_moves = True
         self.AI_button = [(WIDTH + 50, 150, 100, 40), "AI - AI", pygame.USEREVENT + 1]
         self.Human_Button = [(WIDTH + 50, 250, 180, 40), "HUMAN - AI", pygame.USEREVENT + 2]
-        self.HUMAN_AI = True
+        self.HUMAN_AI = False
         self.AI_AI = False
 
 
     # AI part
 
-    def evaluate(self, max_color):
-        global board
-        if max_color == WHITE:
-            return board.white_score - board.black_score
+    def get_maxi_color(self):
+        if self.turn == WHITE:
+            return True
         else:
-            return board.black_score - board.white_score
+            return False
 
-    def minimax(self, win, depth, alpha, beta, max_turn, max_color):
+    def evaluate(self, max_color):
+        self.board.get_score()
+        if max_color:
+            return self.board.white_score - self.board.black_score
+        else:
+            return self.board.black_score - self.board.white_score
+
+    def minimax(self, win, depth, alpha, beta, maximizing_color):
+
+        # visualization
+        self.draw_window(win)
+
         if depth == 0 or self.board.game_over():
-            return None
+            return None, self.evaluate(maximizing_color)
 
         moves = self.board.get_valid_moves(self.turn)
         valid_moves = []
         for move in moves:
             if self.board.is_legal_move(self.turn, move[0], move[1]):
                 valid_moves.append(move)
+
+        print(valid_moves)
+
         best_move = random.choice(valid_moves)
+        
+        if maximizing_color:
+            max_eval = -9999999
+            for move in valid_moves:
+                self.get_valid_moves(move[0][0], move[0][1])
+                self.make_move(win, move[0], move[1])
+                current_eval = self.minimax(win, depth - 1, alpha, beta, False)[1]
+                self.undo_move()
+                if current_eval > max_eval:
+                    pygame.time.delay(3000)
+                    max_eval = current_eval
+                    print(current_eval, max_eval)
+                    best_move = move
 
-        return best_move
+                # alpha = max(alpha, current_eval)
+                # print("max: ", alpha, beta)
+                # if beta <= alpha:
+                #     break
 
-        # if max_turn == WHITE:
-        #     max_eval = -9999
-        #     for move in moves:
-        #         board.move(move[0], move[1])
-        #         current_eval = minimax(win, depth - 1, alpha, beta, BLACK, max_color)[1]
-        #         board.redo_moves()
-        #         board.print_board()
-        #         if current_eval > max_eval:
-        #             best_move = move
-        #         alpha = max(alpha, current_eval)
-        #         if beta <= alpha:
-        #             break
-        #     return best_move, max_eval
-        #
-        # else:
-        #     min_eval = 9999
-        #     for move in moves:
-        #         current_eval = minimax(win, depth - 1, alpha, beta, WHITE, max_color)[1]
-        #         board.redo_moves()
-        #         board.print_board()
-        #         if current_eval < min_eval:
-        #             min_eval  = current_eval
-        #             best_move = move
-        #         beta = min(beta, current_eval)
-        #         if beta <= alpha:
-        #             break
-        #     return best_move, min_eval
+            return best_move, max_eval
+
+        else:
+            min_eval = 9999999
+            for move in valid_moves:
+                self.get_valid_moves(move[0][0], move[0][1])
+                self.make_move(win, move[0], move[1])
+                current_eval = self.minimax(win, depth - 1, alpha, beta, True)[1]
+                self.undo_move()
+                if current_eval < min_eval:
+                    pygame.time.delay(3000)
+                    min_eval = current_eval
+                    print(current_eval, min_eval)
+                    best_move = move
+
+                # beta = min(beta, current_eval)
+                # print("min: ", alpha, beta)
+                # if beta <= alpha:
+                #     break
+            return best_move, min_eval
 
 
     def every_button_pressend(self, m_x, m_y):
@@ -243,7 +270,6 @@ class Game:
             if isinstance(p1, Pawn):
                 if p1.row == 6 or p1.row == 1:
                     self.board.board[p1.col][p1.row].first = True
-                print(p1, p2)
                 if isinstance(p2, tuple) and abs(p2[0] - p1.col) == 1:
                     if p1.color == WHITE:
                         self.board.board[p2[0]][p2[1] + 1] = Pawn(p2[0], p2[1] + 1, self.board.change_turn(p1.color), 'P')
@@ -283,7 +309,6 @@ class Game:
         if self.redos:
             p1, p2 = self.redos.pop()
             self.undos.append((p1, p2))
-            print(p1, p2)
             if isinstance(p2, tuple):
                 self.last_move = [(p1.col, p1.row), (p2[0], p2[1])]
                 self.board.board[p2[0]][p2[1]] = p1.__class__(p2[0], p2[1], p1.color, p1.sign)
@@ -335,12 +360,14 @@ class Game:
     def make_move(self, win, start, end):
         bo = self.board.board
         # self.valid_moves = self.board.get_valid_moves(self.turn)
+        print("yes")
+        self.board.print_board()
         if self.turn == bo[start[0]][start[1]].color:
             if start != end:
                 if end in self.valid_moves:
+
                     if bo[end[0]][end[1]] == 0 or bo[end[0]][end[1]].color != self.turn:
                         self.moved = True
-
                         if bo[end[0]][end[1]] == 0:
                             MOVE.play()
                         else:
@@ -383,18 +410,6 @@ class Game:
                             else:
                                 self.en_passant_pos = ()
 
-                        # check game result
-                        result = self.check_gameover(self.turn)
-                        if result == CHECKMATE:
-                            self.game_over(win)
-                            self.gameover = True
-                        elif result == STALEMATE:
-                            self.game_over(win, stalemate=True)
-                            self.gameover = True
-                        elif result == DRAW:
-                            self.game_over(win, tie=True)
-                            self.gameover = True
-
                         self.change_turn()
 
                         print()
@@ -429,7 +444,7 @@ class Game:
                                     else:
                                         self.HUMAN_AI = True
 
-                            best_move = self.minimax(win, 5, 0, 0, self.turn, WHITE)
+                            best_move = self.minimax(win, 3, False)
                             self.get_valid_moves(best_move[0][0], best_move[0][1])
                             print(best_move)
 
