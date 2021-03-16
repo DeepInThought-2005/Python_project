@@ -68,7 +68,6 @@ def main():
                 else:
                     game.HUMAN_AI = True
 
-
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT:
                     game.undo_move()
