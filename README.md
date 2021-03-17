@@ -22,4 +22,5 @@ There are
     - Able to load fen like this("r1bqk2r/1pppbppp/p1n2n2/4p3/B3P3/5N2/PPPP1PPP/RNBQR1K1 b", 
             You just need to give this fen code where the board object is initialized) 
     - Promotion (to a queen); 
+    - undo redo moves
     - so on...
