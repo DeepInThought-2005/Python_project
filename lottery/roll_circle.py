@@ -180,6 +180,7 @@ class Show:
 			if self.times >= 12 and self.times < 16:
 				self.sim_winner = self.get_winner(rotate_times)
 				if self.sim_winner != -1:
+					pass
 					# if self.data[self.sim_winner] == "name1" or self.data[self.sim_winner] == "name2":
 						# print("los")
 						# rotate_times += 8
