@@ -37,10 +37,13 @@ class Game:
         self.black_time = 15 * 60
         self.white_time = 15 * 60
         self.draw_valid_moves = True
+        #buttons
         self.AI_button = [(WIDTH + 50, 150, 100, 40), "AI - AI", pygame.USEREVENT + 1]
-        self.Human_Button = [(WIDTH + 50, 250, 180, 40), "HUMAN - AI", pygame.USEREVENT + 2]
+        self.Human_Button = [(WIDTH + 50, 200, 150, 40), "HUMAN - AI", pygame.USEREVENT + 2]
+        self.valid_move_Button = [(WIDTH + 50, 250, 130, 40), "ValidMove", pygame.USEREVENT + 3]
         self.HUMAN_AI = False
         self.AI_AI = False
+        self.ValidMove = True
 
 
     # AI part
@@ -119,6 +122,7 @@ class Game:
     def every_button_pressend(self, m_x, m_y):
         self.button_pressed(m_x, m_y, self.AI_button)
         self.button_pressed(m_x, m_y, self.Human_Button)
+        self.button_pressed(m_x, m_y, self.valid_move_Button)
 
 
     def button_pressed(self, m_x, m_y, button):
@@ -130,13 +134,17 @@ class Game:
     def draw_buttons(self, win):
         pygame.draw.rect(win, WHITE, self.AI_button[0], 4)
         pygame.draw.rect(win, WHITE, self.Human_Button[0], 4)
+        pygame.draw.rect(win, WHITE, self.valid_move_Button[0], 4)
         font = pygame.font.SysFont("Arial", 30)
         text1 = font.render(self.AI_button[1], 1, BLACK)
         text2 = font.render(self.Human_Button[1], 1, BLACK)
+        text3 = font.render(self.valid_move_Button[1], 1, BLACK)
         win.blit(text1, (self.AI_button[0][0] + self.AI_button[0][2] / 2 - text1.get_width() / 2,
                          self.AI_button[0][1] + self.AI_button[0][3] / 2 - text1.get_height() / 2))
         win.blit(text2, (self.Human_Button[0][0] + self.Human_Button[0][2] / 2 - text2.get_width() / 2,
                          self.Human_Button[0][1] + self.Human_Button[0][3] / 2 - text2.get_height() / 2))
+        win.blit(text3, (self.valid_move_Button[0][0] + self.valid_move_Button[0][2] / 2 - text3.get_width() / 2,
+                         self.valid_move_Button[0][1] + self.valid_move_Button[0][3] / 2 - text3.get_height() / 2))
 
 
     def game_over(self, win, tie=False, stalemate=False):
@@ -219,7 +227,7 @@ class Game:
             self.draw_color(win, hell_orange, dark_orange, end)
 
         # draw valid_moves
-        if self.draw_valid_moves:
+        if self.draw_valid_moves and self.ValidMove:
             self.board.draw_valid_moves(win, self.valid_moves, self.turn)
 
         # draw selected
@@ -322,11 +330,11 @@ class Game:
             if isinstance(p1, Pawn):
                 if isinstance(p2, tuple):
                     self.board.board[p2[0]][p2[1]].first = False
-                    if p2[1] == 7 or p2[1] == 0:
+                    if p2[1] == 7 or p2[1] == 0 and not self.board.board[p2[0]][p2[1]].promoted:
                         self.board.board[p2[0]][p2[1]].promote()
                 else:
                     self.board.board[p2.col][p2.row].first = False
-                    if p2.row == 7 or p2.row == 0:
+                    if p2.row == 7 or p2.row == 0 and not self.board.board[p2.col][p2.row].promoted:
                         self.board.board[p2.col][p2.row].promote()
 
                 if isinstance(p2, tuple) and abs(p2[0] - p1.col) == 1:
@@ -368,10 +376,11 @@ class Game:
 
                     if bo[end[0]][end[1]] == 0 or bo[end[0]][end[1]].color != self.turn:
                         self.moved = True
-                        if bo[end[0]][end[1]] == 0:
-                            MOVE.play()
-                        else:
-                            CAPTURE.play()
+                        
+                        #if bo[end[0]][end[1]] == 0:
+                            #MOVE.play()
+                        #else:
+                            #CAPTURE.play()
 
                         # the moves which can be undoed
                         s_b = self.board.board[start[0]][start[1]]
@@ -386,8 +395,8 @@ class Game:
                         self.undos.append((s_p, e_p))
 
                         self.move_text = self.board.move(start, end)
-                        if not self.started:
-                            START_END.play()
+                        #if not self.started:
+                            #START_END.play()
                         self.started = True
                         self.last_move = [start, end]
 
@@ -400,7 +409,12 @@ class Game:
 
                         if isinstance(bo[end[0]][end[1]], Pawn):
                             if end[1] == 7 or end[1] == 0:
-                                self.board.board[end[0]][end[1]].promote()
+                                if not self.board.board[end[0]][end[1]].promoted:
+                                    self.board.board[end[0]][end[1]].promote()
+                                else:
+                                    #if not promote
+                                    print("Nop!")
+                                    self.board.board[start[0]][start[1]].change_pos((start))
                             self.board.board[end[0]][end[1]].first = False
                             self.maybe_enpassant(start, end)
 
@@ -443,6 +457,13 @@ class Game:
                                         self.HUMAN_AI = False
                                     else:
                                         self.HUMAN_AI = True
+                                        
+                                if event.type == self.valid_move_Button[2]:
+                                    print("ValidMove")
+                                    if self.ValidMove:
+                                        self.ValidMove = False
+                                    else:
+                                        self.ValidMove = True
 
                             best_move = self.minimax(win, 3, False)
                             self.get_valid_moves(best_move[0][0], best_move[0][1])
@@ -515,7 +536,7 @@ class Game:
                     self.board.board[x][y - 1] = 0
                 else:
                     self.board.board[x][y + 1] = 0
-                CAPTURE.play()
+                #CAPTURE.play()
 
 
     def maybe_castles(self, selected_pos, moved_pos):

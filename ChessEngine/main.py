@@ -67,6 +67,13 @@ def main():
                     game.HUMAN_AI = False
                 else:
                     game.HUMAN_AI = True
+                    
+            if event.type == game.valid_move_Button[2]:
+                print("ValidMove")
+                if game.ValidMove:
+                    game.ValidMove = False
+                else:
+                    game.ValidMove = True
 
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT:

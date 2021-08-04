@@ -359,7 +359,7 @@ class Board:
         elif castles == O_O_O:
             return O_O_O
         else:
-            return chr(ord('a') + pos1[0]) + str(8 - pos1[1]) + chr(ord('a') + pos2[0]) + str(8 - pos2[1])
+            return chr(ord('a') + pos1[0]) + str(8 - pos1[1]) + '-' + chr(ord('a') + pos2[0]) + str(8 - pos2[1])
 
     def set_every_pos(self):
         for i in range(8):
@@ -418,9 +418,9 @@ class Board:
         if moves:
             for move in moves:
                 if self.board[move[0]][move[1]] == 0:
-                    pygame.draw.circle(win, hell_gray, (move[0] * W + W // 2, move[1] * W + W // 2), W // 5)
+                    pygame.draw.circle(win, valid_move_color, (move[0] * W + W // 2, move[1] * W + W // 2), W // 5)
                 else:
                     if turn != self.board[move[0]][move[1]].color:
-                        pygame.draw.circle(win, hell_gray, (move[0] * W + W // 2, move[1] * W + W // 2), W // 2, 8)
+                        pygame.draw.circle(win, valid_move_color, (move[0] * W + W // 2, move[1] * W + W // 2), W // 2, 8)
 
 

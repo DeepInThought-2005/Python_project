@@ -15,17 +15,18 @@ dark_red = (255, 0, 20)
 green = (119, 148, 85)
 white = (235, 235, 208)
 hell_green = (153, 204, 0)
-hell_gray = (0, 128, 128)
+valid_move_color = (90, 34, 244)
 hell_orange = (255, 204, 0)
 dark_orange = (255, 204, 80)
 checked = (255, 128, 128)
 select_color = (0, 255, 255)
 
 # SOUND CONSTANTS
+"""
 MOVE = pygame.mixer.Sound(os.path.join("Sound", "Move.ogg"))
 CAPTURE = pygame.mixer.Sound(os.path.join("Sound", "Capture.ogg"))
 START_END = pygame.mixer.Sound(os.path.join("Sound", "start_end.ogg"))
-
+"""
 
 # GAME CONSTANTS
 BLACK = 'black'
@@ -37,27 +38,35 @@ STALEMATE = "stalemate"
 DRAW = "draw"
 
 # Piece style
-GAMEROOM = "GameRoom"
-NEON = "Neon"
+STAUNTY = "Staunty"
+PIXEL = "Pixel"
+LICHESSDEFAULT = "Lichessdefault"
 
-PIECESTYLE = GAMEROOM
+PIECESTYLE = PIXEL
+
+# Board style
+
+BLUE = "blue"
+
+BOARDSTYLE = BLUE
 
 #IMGS
-BOARD = os.path.join(PIECESTYLE, "chessboard.png")
+FILETYPE = ".png"
+BOARD = os.path.join("Boardstyle", BOARDSTYLE + FILETYPE)
 
-BLACK_KING = os.path.join(PIECESTYLE, "black_king.png")
-BLACK_QUEEN = os.path.join(PIECESTYLE, "black_queen.png")
-BLACK_ROOK = os.path.join(PIECESTYLE, "black_rook.png")
-BLACK_KNIGHT = os.path.join(PIECESTYLE, "black_knight.png")
-BLACK_BISHOP = os.path.join(PIECESTYLE, "black_bishop.png")
-BLACK_PAWN = os.path.join(PIECESTYLE, "black_pawn.png")
+BLACK_KING = os.path.join(PIECESTYLE, "bK" + FILETYPE)
+BLACK_QUEEN = os.path.join(PIECESTYLE, "bQ" + FILETYPE)
+BLACK_ROOK = os.path.join(PIECESTYLE, "bR" + FILETYPE)
+BLACK_KNIGHT = os.path.join(PIECESTYLE, "bN" + FILETYPE)
+BLACK_BISHOP = os.path.join(PIECESTYLE, "bB" + FILETYPE)
+BLACK_PAWN = os.path.join(PIECESTYLE, "bP" + FILETYPE)
 
-WHITE_KING = os.path.join(PIECESTYLE, "white_king.png")
-WHITE_QUEEN = os.path.join(PIECESTYLE, "white_queen.png")
-WHITE_ROOK = os.path.join(PIECESTYLE, "white_rook.png")
-WHITE_KNIGHT = os.path.join(PIECESTYLE, "white_knight.png")
-WHITE_BISHOP = os.path.join(PIECESTYLE, "white_bishop.png")
-WHITE_PAWN = os.path.join(PIECESTYLE, "white_pawn.png")
+WHITE_KING = os.path.join(PIECESTYLE, "wK" + FILETYPE)
+WHITE_QUEEN = os.path.join(PIECESTYLE, "wQ" + FILETYPE)
+WHITE_ROOK = os.path.join(PIECESTYLE, "wR" + FILETYPE)
+WHITE_KNIGHT = os.path.join(PIECESTYLE, "wN" + FILETYPE)
+WHITE_BISHOP = os.path.join(PIECESTYLE, "wB" + FILETYPE)
+WHITE_PAWN = os.path.join(PIECESTYLE, "wP" + FILETYPE)
 
 
 # BOARD_IMG = pygame.transform.scale(pygame.image.load(os.path.join("chess_material", "chessboard.png")), (WIDTH, HEIGHT))

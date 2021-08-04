@@ -1,4 +1,5 @@
 import pygame
+import tkinter as tk
 from constants import *
 
 class Piece:
@@ -793,14 +794,71 @@ class Pawn(Piece):
             return False
 
     def promote(self):
+        # Create Tkinter window to choose the promotion
+        root = tk.Tk()
+        root.title("Promote")
+        root.geometry('96x340')
+        root.resizable(width=False, height=False)
+        def close_window():
+            if not self.promoted:
+                print("clicked")
+                pass
+        root.protocol("WM_DELETE_WINDOW", close_window)
+        Font = ("Arial", 15)
+        Width = 8
+        Height = 3
+        def Queening():
+            self.sign = 'Q'
+            if self.color == BLACK:
+                self.img = BLACK_QUEEN
+            else:
+                self.img = WHITE_QUEEN
+            self.img = pygame.image.load(self.img)
+            self.img = pygame.transform.scale(self.img, (W, W))
+            root.destroy()
+        
+        def Rooking():
+            self.sign = 'R'
+            if self.color == BLACK:
+                self.img = BLACK_ROOK
+            else:
+                self.img = WHITE_ROOK
+            self.img = pygame.image.load(self.img)
+            self.img = pygame.transform.scale(self.img, (W, W))
+            root.destroy()
+            
+        def Bishoping():
+            self.sign = 'B'
+            if self.color == BLACK:
+                self.img = BLACK_BISHOP
+            else:
+                self.img = WHITE_BISHOP
+            self.img = pygame.image.load(self.img)
+            self.img = pygame.transform.scale(self.img, (W, W))
+            root.destroy()
+            
+        def Knighting():
+            self.sign = 'N'
+            if self.color == BLACK:
+                self.img = BLACK_KNIGHT
+            else:
+                self.img = WHITE_KNIGHT
+            self.img = pygame.image.load(self.img)
+            self.img = pygame.transform.scale(self.img, (W, W))
+            root.destroy()
+            
+        buttonQ = tk.Button(root, text="Queen", height=Height, width=Width, font=Font, command=Queening)
+        buttonR = tk.Button(root, text="Rook", height=Height, width=Width, font=Font, command=Rooking)
+        buttonB = tk.Button(root, text="Bishop", height=Height, width=Width, font=Font, command=Bishoping)
+        buttonN = tk.Button(root, text="Knight", height=Height, width=Width, font=Font, command=Knighting)
+        buttonQ.grid(column=0, row=1)
+        buttonR.grid(column=0, row=2)
+        buttonB.grid(column=0, row=3)
+        buttonN.grid(column=0, row=4)
+        root.mainloop()
+        
         self.promoted = True
-        self.sign = 'Q'
-        if self.color == BLACK:
-            self.img = BLACK_QUEEN
-        else:
-            self.img = WHITE_QUEEN
-        self.img = pygame.image.load(self.img)
-        self.img = pygame.transform.scale(self.img, (W, W))
+        
     
     def get_danger_moves(self, board, en_p=()):
         tboard = board.board
@@ -831,8 +889,18 @@ class Pawn(Piece):
                     # if tboard[i - 1][j - 1] != 0:
                         moves.append((i - 1, j - 1))
         else:
-            queen = Queen(self.col, self.row, self.color, 'Q')
-            moves = queen.get_danger_moves(board)
+            if self.sign == "Q":
+                queen = Queen(self.col, self.row, self.color, 'Q')
+                moves = queen.get_danger_moves(board)
+            elif self.sign == "R":
+                rook = Rook(self.col, self.row, self.color, 'R')
+                moves = rook.get_danger_moves(board)
+            elif self.sign == "B":
+                bishop = Bishop(self.col, self.row, self.color, 'B')
+                moves = bishop.get_danger_moves(board)
+            elif self.sign == "N":
+                knight = Knight(self.col, self.row, self.color, 'N')
+                moves = knight.get_danger_moves(board)
         return moves
 
 
@@ -887,8 +955,18 @@ class Pawn(Piece):
                     if tboard[i][j - 1] == 0:
                         moves.append((i, j - 1))
         else:
-            queen = Queen(self.col, self.row, self.color, 'Q')
-            moves = queen.get_valid_moves(board)
+            if self.sign == "Q":
+                queen = Queen(self.col, self.row, self.color, 'Q')
+                moves = queen.get_valid_moves(board)
+            elif self.sign == "R":
+                rook = Rook(self.col, self.row, self.color, 'R')
+                moves = rook.get_valid_moves(board)
+            elif self.sign == "B":
+                bishop = Bishop(self.col, self.row, self.color, 'B')
+                moves = bishop.get_valid_moves(board)
+            elif self.sign == "N":
+                knight = Knight(self.col, self.row, self.color, 'N')
+                moves = knight.get_valid_moves(board)
 
         return moves
 
