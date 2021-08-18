@@ -16,7 +16,8 @@ There are
 3. Minesweeper (not able und generate the board depends on where the User clicks at the first time :( , hope someone would help! I would appreciate that!)
 
 
-![minesweeper](https://user-images.githubusercontent.com/68382039/129886433-404a6498-2499-4844-8acf-c62134933a8a.png)
+![minesweeper1](https://user-images.githubusercontent.com/68382039/129888110-a47a3346-3847-439f-abd6-8b3e8603a2fa.png)
+![minesweeper2](https://user-images.githubusercontent.com/68382039/129888124-a8a05522-fb70-4ed3-9375-7dd3d91245a3.png)
 
 
 3. Tic Tac Toe [Have fun ;)]
