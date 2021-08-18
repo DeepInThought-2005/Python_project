@@ -55,6 +55,8 @@ There are
 
 8. Othello (You might never heart about that, but thats a international boardgame! Very interesting and exciting)
 
+Made with tkinter
+
 
 ![othello1](https://user-images.githubusercontent.com/68382039/129885864-9f2c8d7e-f3a1-4232-9f96-89f98ca69b84.png)
 ![othello2](https://user-images.githubusercontent.com/68382039/129886303-b96f20da-f076-4e36-9a37-0629ace85af1.png)
