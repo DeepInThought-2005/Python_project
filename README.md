@@ -22,6 +22,9 @@ There are
     - Able to mark with right click; 
     - Able to load fen like this("r1bqk2r/1pppbppp/p1n2n2/4p3/B3P3/5N2/PPPP1PPP/RNBQR1K1 b", 
             You just need to give this fen code where the board object is initialized) 
-    - Promotion (to different pieces); 
+    - Promotion (to different pieces)
     - undo redo moves
     - so on...
+8. Othello (You might never heart about that, but thats a international boardgame! Very interesting and exciting)
+![othello1](https://user-images.githubusercontent.com/68382039/129885864-9f2c8d7e-f3a1-4232-9f96-89f98ca69b84.png)
+
