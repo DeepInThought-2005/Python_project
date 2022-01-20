@@ -52,3 +52,8 @@ WHITE_ROOK = os.path.join(PIECESTYLE, "wR" + FILETYPE)
 WHITE_KNIGHT = os.path.join(PIECESTYLE, "wN" + FILETYPE)
 WHITE_BISHOP = os.path.join(PIECESTYLE, "wB" + FILETYPE)
 WHITE_PAWN = os.path.join(PIECESTYLE, "wP" + FILETYPE)
+
+# game mode
+HUMAN_AI = "human-ai"
+HUMAN_HUMAN = "human-human"
+AI_AI = "ai-ai"

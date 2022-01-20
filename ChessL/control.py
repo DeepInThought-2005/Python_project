@@ -1,4 +1,8 @@
+from tkinter.constants import MOVETO
 from pieces import *
+import random
+from board import *
+pygame.font.init()
 
 
 class Control:
@@ -9,9 +13,25 @@ class Control:
         self.marked_pos = [[0] * 8 for _ in range(8)]
         self.selected_pos = ()
         self.valid_moves = []
-        self.game_over = False
+        self.gameoverd = False
         self.en_passant_pos = ()
         self.move_text = ""
+        self.repeated = 0
+        
+    def AI_move(self):
+        moves = self.board.get_valid_moves(self.turn)
+        best_move = []
+        # valid moves
+        vm = []
+        for move in moves:
+            if self.board.is_legal_move(self.turn, move[0], move[1]):
+                vm.append(move)
+
+
+        if not self.check_gameover(self.turn) and vm:
+            best_move = random.choice(vm)
+
+        return best_move
 
     def make_move(self, start, end):
         '''
@@ -20,6 +40,7 @@ class Control:
         s_x, s_y = start
         e_x, e_y = end
         bo = self.board.board
+        pro_square = bo[e_x][e_y]
         self.board.board[e_x][e_y] = self.board.board[s_x][s_y]
         self.board.board[e_x][e_y].col = e_x
         self.board.board[e_x][e_y].row = e_y
@@ -34,29 +55,81 @@ class Control:
             self.board.board[e_x][e_y].castled = True
 
         if isinstance(bo[end[0]][end[1]], Pawn):
-            if end[1] == 7 or end[1] == 0:
-                if not self.board.board[end[0]][end[1]].promoted:
-                    if self.board.board[end[0]][end[1]].promote(start[0], start[1]):
-                        pass
-                    else:
-                        self.board.board[s_x][s_y] = self.board.board[e_x][e_y]
-                        self.board.board[e_x][e_y] = 0
-                else:
-                    pass
-                    # self.board.board[start[0]][end[1]].change_pos((start))
             if self.board.board[end[0]][end[1]] != 0:
                 self.board.board[end[0]][end[1]].first = False
                 self.maybe_enpassant(start, end)
+                self.moves_50 = 0
+
+
+            if end[1] == 7 or end[1] == 0:
+                if not self.board.board[end[0]][end[1]].promoted:
+                    self.board.board[end[0]][end[1]].promote(start[0], start[1])
+                    if not self.board.board[end[0]][end[1]].promoted:
+                        self.board.board[s_x][s_y] = self.board.board[e_x][e_y]
+                        self.board.board[e_x][e_y] = pro_square
+                    else:
+                        self.moves_50 = 0
+                        
+
         
         # set en_passant_pos
         if abs(end[1] - start[1]) == 2:
             self.en_passant_pos = (end[0], end[1])
         else:
             self.en_passant_pos = ()
-        self.board.set_every_coord()
+        self.board.set_every_pos()
 
         self.board.print_board()
-        
+
+    def game_over(self, win, w, h, tie=False, stalemate=False):
+        #START_END.play()
+        self.board.draw(win)
+        self.board.set_every_pos()
+        self.board.unselectall()
+        self.board.draw_pieces(win)
+        text_font = pygame.font.SysFont("times", 100)
+        hint_font = pygame.font.SysFont("times", 60)
+        if tie:
+            text = text_font.render("Draw!", 1, red)
+        elif stalemate:
+            text = text_font.render(self.turn + ' stalemates!', 1, red)
+        else:
+            text = text_font.render(self.turn + ' checkmates!', 1, red)
+        hint = hint_font.render("click anywhere to continue...", 1, red)
+        win.blit(text, (w // 2 - text.get_width() // 2, h // 2 - text.get_height() // 2))
+        win.blit(hint, (w // 2 - hint.get_width() // 2, h // 4 * 3 - text.get_height() // 2))
+        pygame.display.update()
+        clicked = False
+        while not clicked:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    quit()
+                if event.type == pygame.MOUSEBUTTONUP:
+                    clicked = True
+    
+    def print_board(self, board):
+        for i in range(8):
+            for j in range(8):
+                if board[j][i] != 0:
+                    font_color = ''
+                    if board[j][i].color == WHITE:
+                        font_color = '37m'
+                    else:
+                        font_color = '31m'
+                    print("\033[1;" + font_color + board[j][i].sign + "\033[0m", end=' ')
+                else:
+                    print('.', end=' ')
+            print()
+        print()
+
+    def create_tboard(self, bo):
+        tboard = Board()
+        tboard.board = [[0] * 8 for _ in range(8)]
+        for i in range(8):
+            for j in range(8):
+                tboard.board[i][j] = bo[i][j]
+        return tboard
+
     
     def maybe_enpassant(self, selected_pos, moved_pos):
         x, y = moved_pos
@@ -113,31 +186,6 @@ class Control:
 
         return move_text
 
-    def game_over(self, win, tie=False, stalemate=False):
-        #START_END.play()
-        self.board.draw(win)
-        self.board.set_every_pos()
-        self.board.unselectall()
-        self.board.draw_pieces(win)
-        text_font = pygame.font.SysFont("times", 100)
-        hint_font = pygame.font.SysFont("times", 60)
-        if tie:
-            text = text_font.render("Draw!", 1, red)
-        elif stalemate:
-            text = text_font.render(self.turn + ' stalemates!', 1, red)
-        else:
-            text = text_font.render(self.turn + ' checkmates!', 1, red)
-        hint = hint_font.render("click anywhere to continue...", 1, red)
-        win.blit(text, (win.get_width() // 2 - text.get_width() // 2, win.get_height() // 2 - text.get_height() // 2))
-        win.blit(hint, (win.get_width() // 2 - hint.get_width() // 2, win.get_height() // 4 * 3 - text.get_height() // 2))
-        pygame.display.update()
-        clicked = False
-        while not clicked:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    quit()
-                if event.type == pygame.MOUSEBUTTONUP:
-                    clicked = True
 
     def get_onclick(self, m_x, m_y):
         for i in range(8):
@@ -164,6 +212,7 @@ class Control:
             if self.board.is_legal_move(self.turn, (x, y), move):
                 moves.append(move)
         self.valid_moves = moves
+        return moves
     
     def check_gameover(self, color):
         if self.board.checkmate(color):

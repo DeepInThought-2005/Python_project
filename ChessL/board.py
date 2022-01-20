@@ -4,6 +4,8 @@ from pieces import *
 
 class Board:
     def __init__(self) -> None:
+        self.moves_50 = 0
+        self.repetition = 0
         self.board = [[0] * 8 for _ in range(8)]
         self.boardstyle = BOARDSTYLE
         self.board_img = pygame.transform.scale(pygame.image.load(
@@ -174,6 +176,10 @@ class Board:
 
 
     def checkdraw(self):
+        # check 50 moves rule
+        if self.moves_50 == 50:
+            return True
+
         count = 0
         for i in range(8):
             for j in range(8):
@@ -309,7 +315,7 @@ class Board:
         return checkers
 
     def draw(self, win):
-        win.blit(self.img, (0, 0))
+        win.blit(self.board_img, (0, 0))
 
     def draw_pieces(self, win):
         for i in range(8):

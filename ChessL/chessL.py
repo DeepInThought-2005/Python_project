@@ -3,6 +3,7 @@ from pygame.constants import VIDEORESIZE
 from constants import *
 from board import *
 from control import *
+import copy
 
 def draw_window(win, control, w, h):
     control.board.resize(w, h)
@@ -19,7 +20,7 @@ def draw_window(win, control, w, h):
     control.board.resize_pieces(w, h)
     control.board.draw_pieces(win)
     # solve the layer problem!
-    if control.selected_pos:
+    if control.selected_pos and control.board.board[control.selected_pos[0]][control.selected_pos[1]] != 0:
         control.board.board[control.selected_pos[0]][control.selected_pos[1]].draw(win)
     
 
@@ -44,8 +45,10 @@ def main():
     pygame.display.set_caption("ChessL")
     board = Board()
     control = Control(board)
+    positions = [] # for threefold repetition
     win_width = 0
     win_height = 0
+    game_mode = HUMAN_HUMAN
     clock = pygame.time.Clock()
     selected = False
     run = True
@@ -59,6 +62,15 @@ def main():
                 pygame.quit()
 
             if event.type == pygame.VIDEORESIZE:
+                control.board.set_every_pos()
+
+            if game_mode == AI_AI:
+                computer_move = control.AI_move()
+                control.make_move(computer_move[0], computer_move[1])
+                control.change_turn()
+                computer_move = control.AI_move()
+                control.make_move(computer_move[0], computer_move[1])
+                control.change_turn()
                 control.board.set_every_pos()
 
             if event.type == pygame.MOUSEBUTTONDOWN:
@@ -90,42 +102,70 @@ def main():
                         tx, ty = control.selected_pos
                         bo = control.board.board
                         start = bo[tx][ty]
-                        if bo[tx][ty] != 0:
-                            if (tx, ty) != (x, y):
-                                if (x, y) in control.valid_moves:
+                        if bo[tx][ty] != 0 and bo[tx][ty].color == control.turn:
+                            if (x, y) in bo[tx][ty].get_valid_moves(control.board):
+                                if game_mode == HUMAN_HUMAN:
                                     control.make_move((tx, ty), (x, y))
                                     control.change_turn()
+                                    control.board.moves_50 += 0.5
+                                        
+
+                                elif game_mode == HUMAN_AI:
+                                    control.make_move((tx, ty), (x, y))
+                                    control.change_turn()
+                                    draw_window(win, control, win_width, win_height)
+                                    computer_move = control.AI_move()
+                                    if computer_move:
+                                        control.get_valid_moves(computer_move[0][0], computer_move[0][1])
+                                        control.make_move(computer_move[0], computer_move[1])
+                                        todo_after_move()
+                                        control.change_turn()
+                                        control.board.moves_50 += 1
+
+                                tboard = control.create_tboard(bo)
+                                positions.append(tboard)
+                                for tbo in positions:
+                                    if tbo.board == control.board.board:
+                                        control.repeated += 1
+                                print("repeated ", control.repeated)
+                                
+                                if control.repeated == 3:
+                                    control.game_over(win, win_width, win_height, tie=True)
+                                    control.gameoverd = True
                                 else:
-                                    control.board.board[tx][ty] = start
+                                    control.repeated = 0
+
                             else:
                                 control.board.board[tx][ty] = start
                         else:
                             control.board.board[tx][ty] = start
-                    control.board.set_every_pos()
-
-
+                        
+                        control.board.set_every_pos()
 
                     # check game result
                     control.change_turn()
                     result = control.check_gameover(control.turn)
                     if result == CHECKMATE:
-                        control.game_over(win)
-                        control.gameover = True
+                        control.game_over(win, win_width, win_height)
+                        control.gameoverd = True
                     elif result == STALEMATE:
-                        control.game_over(win, stalemate=True)
-                        control.gameover = True
+                        control.game_over(win, win_width, win_height, stalemate=True)
+                        control.gameoverd = True
                     elif result == DRAW:
-                        control.game_over(win, tie=True)
-                        control.gameover = True
-
+                        control.game_over(win, win_width, win_height, tie=True)
+                        control.gameoverd = True
                     control.change_turn()
+
 
                 else:
                     if control.selected_pos:
                         print(x, y, control.selected_pos)
                         control.board.board[x][y].change_pos((x, y))
                 if event.type != VIDEORESIZE:
-                    todo_after_move()
+                    control.board.unselectall()
+                    control.selected_pos = ()
+                    control.valid_moves = []
+                    control.board.set_every_pos()
                     draw_window(win, control, win_width, win_height)
         
             if event.type == pygame.MOUSEMOTION:

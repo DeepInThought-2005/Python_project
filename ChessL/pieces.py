@@ -840,7 +840,6 @@ class Pawn(Piece):
             self.img = pygame.transform.scale(self.img, (self.w, self.h))
             self.promoted = True
             root.destroy()
-            return True
         
         def Rooking():
             self.sign = 'R'
@@ -852,7 +851,6 @@ class Pawn(Piece):
             self.img = pygame.transform.scale(self.img, (self.w, self.h))
             self.promoted = True
             root.destroy()
-            return True
             
         def Bishoping():
             self.sign = 'B'
@@ -864,7 +862,6 @@ class Pawn(Piece):
             self.img = pygame.transform.scale(self.img, (self.w, self.h))
             self.promoted = True
             root.destroy()
-            return True
             
         def Knighting():
             self.sign = 'N'
@@ -876,7 +873,6 @@ class Pawn(Piece):
             self.img = pygame.transform.scale(self.img, (self.w, self.h))
             self.promoted = True
             root.destroy()
-            return True
             
         buttonQ = tk.Button(root, text="Queen", height=Height, width=Width, font=Font, command=Queening)
         buttonR = tk.Button(root, text="Rook", height=Height, width=Width, font=Font, command=Rooking)
