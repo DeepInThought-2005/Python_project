@@ -17,18 +17,46 @@ class Control:
         self.en_passant_pos = ()
         self.move_text = ""
         self.repeated = 0
+
+    def switch_turn(self, turn):
+        if turn == WHITE:
+            turn = BLACK
+        else:
+            turn = WHITE
+
+        return turn
         
-    def AI_move(self):
+    def AI_move(self, depth=2):
+        def evaluate():
+            score = self.bard.get_score()
         moves = self.board.get_valid_moves(self.turn)
         best_move = []
         # valid moves
         vm = []
+        tboard = self.create_tboard(self.board.board)
         for move in moves:
-            if self.board.is_legal_move(self.turn, move[0], move[1]):
+            captured = tboard.board[move[1][0]][move[1][1]]
+            tboard.move(move[0], move[1])
+            if not tboard.check(self.switch_turn(self.turn)):
                 vm.append(move)
+            tboard.move(move[1], move[0], captured)
 
 
         if not self.check_gameover(self.turn) and vm:
+            for m in vm:
+                score1 = tboard.get_score()
+                captured = tboard.board[m[1][0]][m[1][1]]
+                tboard.move(m[0], m[1])
+                score2 = tboard.get_score()
+                if score2 == score1:
+                    best_move = m
+
+                if score2 < score1:
+                    best_move = m
+                    return best_move
+
+                tboard.move(m[1], m[0], captured)
+            
             best_move = random.choice(vm)
 
         return best_move

@@ -88,6 +88,9 @@ class Piece:
 
 
 class Queen(Piece):
+    def __init__(self, col, row, color, sign):
+        super().__init__(col, row, color, sign)
+        self.value = 900
 
     def get_danger_moves(self, board):
         board = board.board
@@ -305,6 +308,7 @@ class King(Piece):
         self.s_castled = False # o-o
         self.l_castled = False # o-o-o
         self.castled = False
+        self.value = 0
 
     def how_castles(self, x, y):
         print(self.col, x)
@@ -455,6 +459,10 @@ class King(Piece):
 
 
 class Bishop(Piece):
+    def __init__(self, col, row, color, sign):
+        super().__init__(col, row, color, sign)
+        self.value = 300
+
     def get_danger_moves(self, board):
         board = board.board
         moves = []
@@ -582,6 +590,9 @@ class Bishop(Piece):
         return moves
 
 class Knight(Piece):
+    def __init__(self, col, row, color, sign):
+        super().__init__(col, row, color, sign)
+        self.value = 300
 
     def get_danger_moves(self, board):
         board = board.board
@@ -694,6 +705,7 @@ class Rook(Piece):
     def __init__(self, col, row, color, sign):
         super().__init__(col, row, color, sign)
         self.castled = False
+        self.value = 500
 
     def get_danger_moves(self, board):
         board = board.board
@@ -793,6 +805,7 @@ class Pawn(Piece):
         self.first = True
         self.pawn = True
         self.promoted = False
+        self.value = 100
 
     def is_move_en_passant(self, pos, en_p=()):
         i, j = self.col, self.row

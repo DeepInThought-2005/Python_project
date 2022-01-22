@@ -3,7 +3,6 @@ from pygame.constants import VIDEORESIZE
 from constants import *
 from board import *
 from control import *
-import copy
 
 def draw_window(win, control, w, h):
     control.board.resize(w, h)
@@ -44,11 +43,12 @@ def main():
     win = pygame.display.set_mode((DEF_WIDTH, DEF_HEIGHT), pygame.RESIZABLE)
     pygame.display.set_caption("ChessL")
     board = Board()
+    board.load_FEN("4k3/8/8/8/8/8/8/3KNB2 w")
     control = Control(board)
     positions = [] # for threefold repetition
     win_width = 0
     win_height = 0
-    game_mode = HUMAN_HUMAN
+    game_mode = HUMAN_AI
     clock = pygame.time.Clock()
     selected = False
     run = True
@@ -103,7 +103,7 @@ def main():
                         bo = control.board.board
                         start = bo[tx][ty]
                         if bo[tx][ty] != 0 and bo[tx][ty].color == control.turn:
-                            if (x, y) in bo[tx][ty].get_valid_moves(control.board):
+                            if (x, y) in control.get_valid_moves(tx, ty):
                                 if game_mode == HUMAN_HUMAN:
                                     control.make_move((tx, ty), (x, y))
                                     control.change_turn()

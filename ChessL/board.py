@@ -12,6 +12,61 @@ class Board:
             os.path.join("Image/Boards", BOARDSTYLE+FILETYPE)), (DEF_WIDTH, DEF_HEIGHT))
         self.generate_initial()
 
+    def load_FEN(self, fen):
+        fen = fen.replace(' ', '')
+        self.board = [[0] * 8 for _ in range(8)]
+        i = -1
+        j = 0
+        for k, x in enumerate(fen):
+            if x == 'Q':
+                i += 1
+                self.board[i][j] = Queen(i, j, WHITE, "Q")
+            elif x == 'K':
+                i += 1
+                self.board[i][j] = King(i, j, WHITE, "K")
+            elif x == 'B':
+                i += 1
+                self.board[i][j] = Bishop(i, j, WHITE, "B")
+            elif x == 'N':
+                i += 1
+                self.board[i][j] = Knight(i, j, WHITE, "N")
+            elif x == 'R':
+                i += 1
+                self.board[i][j] = Rook(i, j, WHITE, "R")
+            elif x == 'P':
+                i += 1
+                self.board[i][j] = Pawn(i, j, WHITE, "P")
+            elif x == 'q':
+                i += 1
+                self.board[i][j] = Queen(i, j, BLACK, "Q")
+            elif x == 'k':
+                i += 1
+                self.board[i][j] = King(i, j, BLACK, "K")
+            elif x == 'b':
+                i += 1
+                self.board[i][j] = Bishop(i, j, BLACK, "B")
+            elif x == 'n':
+                i += 1
+                self.board[i][j] = Knight(i, j, BLACK, "N")
+            elif x == 'r':
+                i += 1
+                self.board[i][j] = Rook(i, j, BLACK, "R")
+            elif x == 'p':
+                i += 1
+                self.board[i][j] = Pawn(i, j, BLACK, "P")
+            elif x == '/':
+                j += 1
+                i = -1
+            else:
+                i += int(x)
+
+            if i == 7 and j == 7:
+                if fen[k + 1] == 'b':
+                    self.turn = BLACK
+                else:
+                    self.turn = WHITE
+                break
+
     def resize(self, w, h):
         self.board_img = self.board_img = pygame.transform.scale(pygame.image.load(
             os.path.join("Image/Boards", BOARDSTYLE+FILETYPE)), (w, h))
@@ -79,10 +134,13 @@ class Board:
 
         return moves
 
-    def move(self, pos1, pos2, castles=""):
+    def move(self, pos1, pos2, captured=None, castles=""):
         tboard = self.board[:]
         tboard[pos1[0]][pos1[1]].change_pos(pos2)
-        self.board[pos2[0]][pos2[1]], self.board[pos1[0]][pos1[1]] = self.board[pos1[0]][pos1[1]], 0
+        if captured:
+            self.board[pos2[0]][pos2[1]], self.board[pos1[0]][pos1[1]] = self.board[pos1[0]][pos1[1]], captured
+        else:
+            self.board[pos2[0]][pos2[1]], self.board[pos1[0]][pos1[1]] = self.board[pos1[0]][pos1[1]], 0
         self.board = tboard
         self.set_every_pos()
         if castles == O_O:
@@ -330,3 +388,13 @@ class Board:
                     if turn != self.board[i][j].color:
                         king_pos = (i, j)
                         return king_pos
+
+    def get_score(self):
+        score = 0
+        for i in range(8):
+            for j in range(8):
+                if self.board[j][i] != 0:
+                    score += self.board[j][i].value
+        
+        return score
+
