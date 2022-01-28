@@ -6,15 +6,21 @@ import pygame
 pygame.mixer.init()
 import os
 
-GAME_SOUND = pygame.mixer.Sound(os.path.join("sounds", "林海 - 欢沁(1).wav"))
+GAME_SOUND = pygame.mixer.Sound(os.path.join("sounds", "林海-欢沁.wav"))
 
-price = {2: "Belt", 1: "GT2", -1:"Wiskey", -2:"gotdrunk", 0:"Matepad", 3: "headset"}
+price = {1: "phone", 2: "gt3", 0:"remark", -1:"Max", 3:"kindle"}
 
 # name of the person
-data = ["A", "B", "C", "D"]
+data = ["乌日罕", "魏详", "李欣然", "王永杰", 
+		"刘仕勇", "李阳", "周建生", "Engelbert",
+		"Ante", "王玮", "陈学元", "唐雷",
+		"王博", "陈德馨", "张军", "孔晓民", "Michelle"]
 
 # image of the person
-images = ["A", "B", "C", "D"]
+images = ["Wurihan", "William", "Max", "Franco", 
+		"Sam", "Ronnie", "JC", "Engelbert",
+		"Ante", "Bob", "Anby", "Thomas",
+		"Webber", "Dexin", "Lucas", "Kelvin", "Michelle"]
 
 
 r = lambda: random.randint(0,255)
@@ -23,6 +29,7 @@ win_height = 800
 
 Huawei_cap = None
 decoration = None
+Crown = None
 
 
 class Show:
@@ -35,7 +42,7 @@ class Show:
 		self.img_names = images[:]
 		self.imgs = []
 		for name in self.img_names:
-			img = Image.open('roll_img/' + name + '.png')
+			img = Image.open('roll_img/' + name + '.jpg')
 			img = img.resize((200, 200), Image.ANTIALIAS)
 			img = ImageTk.PhotoImage(img)
 			self.imgs.append(img)
@@ -60,7 +67,7 @@ class Show:
 		self.names = [] # for show_all_label
 		self.temp_winner = [] # 被移除后的
 		self.sim_winner = -1
-		self.stuck = Image.open('roll_img/90d.png')
+		self.stuck = Image.open('img/stuck.png')
 		self.stuck = self.stuck.resize((200, 200), Image.ANTIALIAS)
 		self.stuck = ImageTk.PhotoImage(self.stuck)
 
@@ -73,13 +80,13 @@ class Show:
 				color = "#%02X%02X%02X" % (r(),r(),r())
 			self.colors.append(color)
 			part = self.c.create_arc(25, 30, win_width - 25, win_height - 30, fill=color,
-								     style=PIESLICE, start=start,
-								     extent=360 / len(self.data), width=2)
+									 style=PIESLICE, start=start,
+									 extent=360 / len(self.data), width=2)
 			# print(self.c.itemconfigure(part, 'start')[4])
 			self.circle.append([part, start, color, data[i]])
 		pointer_img = Image.open('img/pointer.png')
-		pointer_img = pointer_img.resize((20, 150), Image.ANTIALIAS)
-		self.pointer_img = ImageTk.PhotoImage(pointer_img)
+		pointer_img = pointer_img.resize((100, 150), Image.ANTIALIAS)
+		self.pointer_img = ImageTk.PhotoImage(pointer_img)  
 		self.c.create_image(win_width / 2, 75, image=self.pointer_img)
 		# self.roll_button = Button(self.win, text="surprise!", font=("Comicsansms", 30),
 		# 	command=self.space_pressed, bd=4, width=15, height=2)
@@ -87,48 +94,52 @@ class Show:
 		# self.win.bind('<space>', self.space_pressed)
 		# self.roll_button.place(x=win_width // 2 + 100, y=win_height + 50)
 
-		Huawei_cap = Image.open('roll_img/crown.png')
-		Huawei_cap = Huawei_cap.resize((150, 100), Image.ANTIALIAS)
+		Huawei_cap = Image.open('img/cap.png')
+		Huawei_cap = Huawei_cap.resize((200, 100), Image.ANTIALIAS)
 		Huawei_cap = ImageTk.PhotoImage(Huawei_cap)
 		self.huawei_cap_label = Label(self.c, image=Huawei_cap)
+		Crown = Image.open('img/crown.png')
+		Crown = Crown.resize((300, 150), Image.ANTIALIAS)
+		Crown = ImageTk.PhotoImage(Crown)
+		self.Crown_label = Label(self.c, image=Crown)
 
 		# 几等奖按钮
-		self.price_3 = Button(self.win, text="三等奖 (7)", font=("Arial", 20), command=self.space_pressed, bd=4)
+		self.price_3 = Button(self.win, text="三等奖 (5)", font=("Arial", 20), command=self.space_pressed, bd=4)
 		self.price_2 = Button(self.win, text="二等奖 (5)", font=("Arial", 20), command=self.space_pressed, bd=4)
-		self.price_1 = Button(self.win, text="一等奖 (2)", font=("Arial", 20), command=self.space_pressed, bd=4)
-		self.price_s = Button(self.win, text="特等奖 (1)", font=("Arial", 20), command=self.space_pressed, bd=4)
+		self.price_1 = Button(self.win, text="一等奖 (4)", font=("Arial", 20), command=self.space_pressed, bd=4)
+		self.price_s = Button(self.win, text="特等奖 (3)", font=("Arial", 20), command=self.space_pressed, bd=4)
 		self.price_3.place(x=200, y=900)
 
 		# 几等奖 Label
 			# store imgs
 		for p in price.keys():
 			if p == -2:
-				price[p] = Image.open("roll_img/" + price[p] + '.png')
+				price[p] = Image.open("roll_img/" + price[p] + '.jpg')
 				price[p] = price[p].resize((180, 180), Image.ANTIALIAS)
 				price[p] = ImageTk.PhotoImage(price[p])
 			else:
-				price[p] = Image.open("roll_img/" + price[p] + '.png')
-				price[p] = price[p].resize((100, 100), Image.ANTIALIAS)
+				price[p] = Image.open("roll_img/" + price[p] + '.jpg')
+				price[p] = price[p].resize((150, 150), Image.ANTIALIAS)
 				price[p] = ImageTk.PhotoImage(price[p])
 		Label(self.win, image=price[3]).place(x=1360, y=0)
-		Label(self.win, text="三等奖: ", font=("Arial", 20)).place(x=1500, y=50)
+		Label(self.win, text="三等奖: ", font=("Arial", 20)).place(x=1520, y=0)
 		self.label_price_3 = Label(self.win, text="", font=("Arial", 18, 'italic'), fg='red')
-		self.label_price_3.place(x=1500, y=100)
+		self.label_price_3.place(x=1550, y=50)
 		Label(self.win, image=price[2]).place(x=1360, y=250)
-		Label(self.win, text="二等奖: ", font=("Arial", 20)).place(x=1500, y=300)
+		Label(self.win, text="二等奖: ", font=("Arial", 20)).place(x=1520, y=250)
 		self.label_price_2 = Label(self.win, text="", font=("Arial", 18, 'italic'), fg='red')
-		self.label_price_2.place(x=1500, y=350)
-		Label(self.win, image=price[1]).place(x=1360, y=450)
-		Label(self.win, text="一等奖: ", font=("Arial", 20)).place(x=1500, y=500)
+		self.label_price_2.place(x=1550, y=300)
+		Label(self.win, image=price[1]).place(x=1360, y=500)
+		Label(self.win, text="一等奖: ", font=("Arial", 20)).place(x=1520, y=500)
 		self.label_price_1 = Label(self.win, text="", font=("Arial", 18, 'italic'), fg='red')
-		self.label_price_1.place(x=1500, y=550)
-		Label(self.win, image=price[0]).place(x=1360, y=600)
-		Label(self.win, text="特等奖: ", font=("Arial", 20)).place(x=1500, y=650)
+		self.label_price_1.place(x=1550, y=550)
+		Label(self.win, image=price[0]).place(x=1360, y=750)
+		Label(self.win, text="特等奖: ", font=("Arial", 20)).place(x=1520, y=750)
 		self.label_price_s = Label(self.win, text="", font=("Arial", 18, 'italic'), fg='red')
-		self.label_price_s.place(x=1500, y=700)
+		self.label_price_s.place(x=1550, y=800)
 		self.failed_label = Label(self.win, text="特别奖: ", font=("Arial", 20))
 		self.label_price_failed = Label(self.win,  text="", font=("Arial", 18, 'italic'), fg='red')
-		self.label_price_failed.place(x=1500, y=850)
+		self.label_price_failed.place(x=1550, y=850)
 
 		self.price_3.place(x=200, y=900)
 
@@ -151,8 +162,8 @@ class Show:
 		for i in range(len(self.data)):
 			start = 90 + 360 / len(self.data) / 2 + i * 360 / len(self.data)
 			part = self.c.create_arc(25, 30, win_width - 25, win_height - 30, fill=self.colors[i],
-								     style=PIESLICE, start=start,
-								     extent=360 / len(self.data), width=2)
+									 style=PIESLICE, start=start,
+									 extent=360 / len(self.data), width=2)
 			# print(self.c.itemconfigure(part, 'start')[4])
 			self.circle.append([part, start, self.colors[i], self.data[i]])
 
@@ -175,15 +186,19 @@ class Show:
 			self.step = 20
 			self.al_rotate_times = 0 # already_rotate_tims
 			self.is_going = True
-			rotate_times = random.randint(150, 250)
-			print(rotate_times)
-			if self.times >= 12 and self.times < 16:
+			rotate_times = random.randint(120, 140)
+
+
+			if self.times < 11:
 				self.sim_winner = self.get_winner(rotate_times)
 				if self.sim_winner != -1:
-					pass
-					# if self.data[self.sim_winner] == "name1" or self.data[self.sim_winner] == "name2":
-						# print("los")
-						# rotate_times += 8
+					if self.data[self.sim_winner] == "周建生":
+						rotate_times += 6
+			if self.times == 11:
+				while self.data[self.get_winner(rotate_times)] != "周建生": 
+					rotate_times += 1
+
+
 			if len(self.data) != len(data):
 				self.circle = []
 				self.create_c()
@@ -198,8 +213,8 @@ class Show:
 		for i in range(len(self.data)):
 			start = 90 + 360 / len(self.data) / 2 + i * 360 / len(self.data)
 			part = t_canvas.create_arc(25, 30, win_width - 25, win_height - 30, fill=self.colors[i],
-								     style=PIESLICE, start=start,
-								     extent=360 / len(self.data), width=2)
+									 style=PIESLICE, start=start,
+									 extent=360 / len(self.data), width=2)
 			circle.append([part, start, self.colors[i], self.data[i]])
 
 		while step != 0:
@@ -235,7 +250,7 @@ class Show:
 			if self.step == 0:
 				self.is_going = False
 				pygame.mixer.pause()
-				self.huawei_cap_label.place(x=win_width + 50, y = win_height // 2 - 200)
+				self.huawei_cap_label.place(x=win_width + 20, y = win_height // 2 - 200)
 				winner_ind = self.check_winner(90)
 				if winner_ind == -2:
 					winner_ind = self.check_winner(90)
@@ -244,7 +259,7 @@ class Show:
 					self.temp_winner.append(self.data[winner_ind])
 					text = ''
 
-					if self.times < 8:
+					if self.times < 6:
 						for i in range(len(self.temp_winner)):
 							if i % 2 != 0:
 								text += self.temp_winner[i] + '\n'
@@ -252,68 +267,68 @@ class Show:
 								text += self.temp_winner[i] + '  '
 						self.label_price_3['text'] = text
 
-					if self.times < 13 and self.times >= 8:
-						for i in range(7, len(self.temp_winner)):
+					if self.times < 11 and self.times >= 6:
+						for i in range(5, len(self.temp_winner)):
 							if i % 2 == 0:
 								text += self.temp_winner[i] + '\n'
 							else:
 								text += self.temp_winner[i] + ' '
 						self.label_price_2['text'] = text
 
-					if self.times < 15 and self.times >= 13:
-						for i in range(12, len(self.temp_winner)):
+					if self.times < 15 and self.times >= 11:
+						for i in range(10, len(self.temp_winner)):
 							if i % 2 != 0:
 								text += self.temp_winner[i] + '\n'
 							else:
 								text += self.temp_winner[i] + ' '
 						self.label_price_1['text'] = text
 
-					if self.times < 16 and self.times >= 15:
-						for i in range(14, len(self.temp_winner)):
-							if i % 2 == 0:
-								text += self.temp_winner[i] + '\n'
-							else:
-								text += self.temp_winner[i] + ' '
-						self.label_price_s['text'] = text
+					# if self.times < 18 and self.times >= 15:
+					# 	for i in range(14, len(self.temp_winner)):
+					# 		if i % 2 == 0:  
+					# 			text += self.temp_winner[i] + '\n'
+					# 		else:
+					# 			text += self.temp_winner[i] + ' '
 
 
-					if self.times == 7:
+					if self.times == 5:
 						self.price_3['state'] = 'disabled'
 						self.price_2['state'] = 'normal'
-					if self.times == 12:
+					if self.times == 10:
 						self.price_2['state'] = 'disabled'
 						self.price_1['state'] = 'normal'
 					if self.times == 14:
 						self.price_1['state'] = 'disabled'
 						self.price_s['state'] = 'normal'
-					if self.times == 16:
-						self.price_s['state'] = 'disabled'
+					if self.times == 15:
 						text = ''
-						for i in range(len(self.data)):
-							if i % 2 != 0:
-								text += self.data[i] + '\n'
+						for i, d in enumerate(self.data):
+							if i % 2 == 0:
+								text += d + '\n'
 							else:
-								text += self.data[i] + ' '
-						Label(self.win, image=price[-1]).place(x=1360, y=800)
-						self.failed_label.place(x=1500, y=800)
-						self.label_price_failed['text'] = text
-						# self.names[winner_ind][0]['fg'] = 'black'
-						# self.names[self.check_winner(90)][0]['bg'] = self.default_color
-						self.reset_name_color()
-						self.huawei_cap_label.place_forget()
-						self.broadcast_winner("借酒消愁", price[-2])
+								text += d + ' '
 
-					del self.data[winner_ind]
-					del self.circle[winner_ind]
-					del self.img_names[winner_ind]
-					del self.imgs[winner_ind]
-					if self.times != 16:
-						self.names[winner_ind][0]['bg'] = "#ff00ff"
-						self.names[winner_ind][0]['fg'] = "black"
-					del self.names[winner_ind]
-					del self.colors[winner_ind]
-					for i in range(len(self.circle)):
-						self.names[i][1]['bg'] = self.circle[i][2]
+						self.label_price_s['text'] = text
+						self.Crown_label.place(x=win_width - 30, y = win_height // 2 - 250)
+						self.price_s['state'] = 'disabled'
+						for name in self.names:
+							name[0]['bg'] = "#ff00ff"
+							name[0]['fg'] = "black"
+						self.names[winner_ind][0]['bg'] = "yellow"
+						self.names[winner_ind][0]['fg'] = "red"
+
+					if self.times != 15:
+						del self.data[winner_ind]
+						del self.circle[winner_ind]
+						del self.img_names[winner_ind]
+						del self.imgs[winner_ind]
+						if self.times != 16:
+							self.names[winner_ind][0]['bg'] = "#ff00ff"
+							self.names[winner_ind][0]['fg'] = "black"
+						del self.names[winner_ind]
+						del self.colors[winner_ind]
+						for i in range(len(self.circle)):
+							self.names[i][1]['bg'] = self.circle[i][2]
 				else:
 					self.broadcast_winner("卡住了", self.stuck)
 					# messagebox.showinfo("Oh my god", "正好卡在中间...")
