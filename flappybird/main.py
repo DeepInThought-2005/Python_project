@@ -56,9 +56,8 @@ def main():
                 run = False
                 pygame.quit()
 
-            keys = pygame.key.get_pressed()
-            for key in keys:
-                if keys[pygame.K_SPACE]:
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
                     bird.up()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 bird.up()
