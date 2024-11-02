@@ -19,6 +19,7 @@ class BoardCanvas(tk.Canvas):
         self.ai_level = 2
         self.play_as = B
         self.depth = 3
+        self.calculating = False # solves undo redo problem
 
         self.show_vm_as = EVAL
         self.is_draw_valid_moves = True
@@ -46,7 +47,7 @@ class BoardCanvas(tk.Canvas):
         self.valid_moves = self.get_valid_moves(self.array, self.turn)
         self.hover_pos = (0, 0)
         self.capturable_list = self.get_capturable(self.array, self.turn, self.valid_moves) # amount of capturable pieces in every valid moves
-        self.eval_list = self.minimax(self.array, self.depth, True, self.turn, -INF, INF, self.determine_stage(self.array))[1]
+        self.reset_eval_list()
         self.animating = False # for on_hover purpose
         self.redraw()
 
@@ -87,33 +88,24 @@ class BoardCanvas(tk.Canvas):
                 self.switch_turn()
                 self.valid_moves = self.get_valid_moves(self.array, self.turn)
                 self.capturable_list = self.get_capturable(self.array, self.turn, self.valid_moves)
-                self.eval_list = self.minimax(self.array, self.depth, True, self.turn, -INF, INF, self.determine_stage(self.array))[1]
+                self.reset_eval_list()
                 self.redraw()
                 self.print_board(self.array)
 
                 if self.mode == HUMAN_AI:
-                    max_value = -INF
-                    max_key = ()
-                    for key, value in self.eval_list.items():
-                        if value > max_value:
-                            max_value = value
-                            max_key = key
-
-                    to_flip = self.is_valid_move(self.array, self.turn, max_key[0], max_key[1])
-                    if to_flip:
-                        self.animate_move(self.array, max_key[0], max_key[1], self.turn)
-
-                    self.switch_turn()
-                    self.valid_moves = self.get_valid_moves(self.array, self.turn)
-                    self.capturable_list = self.get_capturable(self.array, self.turn, self.valid_moves)
-                    self.eval_list = self.minimax(self.array, self.depth, True, self.turn, -INF, INF, self.determine_stage(self.array))[1]
-                    self.redraw()
+                    self.AI_move()
+    
+    def reset_eval_list(self):
+        self.calculating = True
+        self.eval_list = self.minimax(self.array, self.depth, True, self.turn, -INF, INF, self.determine_stage(self.array))[1]
+        self.calculating = False
                     
     def apply_move(self, board, col, row, turn):
         # apply move without animation
         to_flip = self.is_valid_move(board, turn, col, row)
-        self.undo_array.append(deepcopy(board))
-        self.redo_array = [] # reset redo array
+        if not self.calculating:
+            self.undo_array.append(deepcopy(board))
+            self.redo_array = [] # reset redo array
         board[col][row] = turn
         for move in to_flip:
             board[move[0]][move[1]] = turn
@@ -122,7 +114,7 @@ class BoardCanvas(tk.Canvas):
     def animate_move(self, board, x, y, turn):
         # apply move with animation
         to_flip = self.is_valid_move(board, turn, x, y)
-        self.undo_array.append(deepcopy(self.array))
+        self.undo_array.append(deepcopy(board))
         self.redo_array = [] # reset redo array
         board[x][y] = self.turn
         self.is_draw_valid_moves = False
@@ -180,6 +172,7 @@ class BoardCanvas(tk.Canvas):
             self.switch_turn()
             self.valid_moves = self.get_valid_moves(self.array, self.turn)
             self.capturable_list = self.get_capturable(self.array, self.turn, self.valid_moves)
+            self.reset_eval_list()
             self.redraw()
 
     def redo(self):
@@ -189,6 +182,7 @@ class BoardCanvas(tk.Canvas):
             self.switch_turn()
             self.valid_moves = self.get_valid_moves(self.array, self.turn)
             self.capturable_list = self.get_capturable(self.array, self.turn, self.valid_moves)
+            self.reset_eval_list()
             self.redraw()
     
     def flip_piece(self, arr, col, row):
@@ -463,3 +457,26 @@ class BoardCanvas(tk.Canvas):
                 if beta <= alpha:
                     break
             return min_eval, move_evaluations
+    
+    def AI_move(self):
+        if not self.animating:
+            # make a move with AI
+            max_value = -INF
+            max_key = ()
+            for key, value in self.eval_list.items():
+                if value > max_value:
+                    max_value = value
+                    max_key = key
+
+            to_flip = self.is_valid_move(self.array, self.turn, max_key[0], max_key[1])
+            if to_flip:
+                if self.is_animating_flip:
+                    self.animate_move(self.array, max_key[0], max_key[1], self.turn)
+                else:
+                    self.apply_move(self.array, max_key[0], max_key[1], self.turn)
+
+            self.switch_turn()
+            self.valid_moves = self.get_valid_moves(self.array, self.turn)
+            self.capturable_list = self.get_capturable(self.array, self.turn, self.valid_moves)
+            self.reset_eval_list()
+            self.redraw()

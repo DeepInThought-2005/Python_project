@@ -34,13 +34,14 @@ class Bootstrap():
         self.game_menu.add_command(label="new game", command=lambda: self.bC.init_board(self.bC.col, self.bC.row))
         self.game_menu.add_command(label="undo (Ctrl+Z)", command=self.bC.undo)
         self.game_menu.add_command(label="redo (Ctrl+Y)", command=self.bC.redo)
-        self.game_menu.add_command(label="AI move", command=self.bC.redo)
+        self.game_menu.add_command(label="AI move (Ctrl+A)", command=self.bC.AI_move)
 
         self.pack_all()
         self.r.bind("<Configure>", self._update)
         self.r.bind("<Button-1>", self.app_clicked)
-        self.r.bind("<Control-z>", self.redo)
-        self.r.bind("<Control-y>", self.undo)
+        self.r.bind("<Control-z>", self.undo)
+        self.r.bind("<Control-y>", self.redo)
+        self.r.bind("<Control-a>", self.AI_move)
 
         # self.bC.get_move_scores(B, 3)
         # self.bC.print_board()
@@ -109,15 +110,25 @@ class Bootstrap():
     def edit_mode(self):
         pass
 
+    def update_side_canvas(self):
+        self.upC.b_counter['text'] = "White: " + str(self.bC.get_pieces_left(B))
+        self.upC.w_counter['text'] = "White: " + str(self.bC.get_pieces_left(W))
+        if self.bC.turn == B:
+            self.unC.hint['text'] = "Black to move..."
+        else:
+            self.unC.hint['text'] = "White to move..."
+
+    def AI_move(self, event=None):
+        self.bC.AI_move()
+        self.update_side_canvas()
+
     def undo(self, event=None):
         self.bC.undo()
-        self.upC.counter['text'] = "White: " + str(self.bC.get_pieces_left(W))
-        self.unC.counter['text'] = "Black: " + str(self.bC.get_pieces_left(B))
+        self.update_side_canvas()
 
     def redo(self, event=None):
         self.bC.redo()
-        self.upC.counter['text'] = "White: " + str(self.bC.get_pieces_left(W))
-        self.unC.counter['text'] = "Black: " + str(self.bC.get_pieces_left(B))
+        self.update_side_canvas()
 
     def app_clicked(self, event):
         self.bC.clicked(event)
@@ -125,10 +136,7 @@ class Bootstrap():
 
         self.upC.w_counter['text'] = "White: " + str(self.bC.get_pieces_left(W))
         self.upC.b_counter['text'] = "White: " + str(self.bC.get_pieces_left(W))
-        if self.bC.turn == B:
-            self.unC.hint['text'] = "Black to move..."
-        else:
-            self.unC.hint['text'] = "White to move..."
+        self.update_side_canvas()
 
 
     def _update(self, event):
