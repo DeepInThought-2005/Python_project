@@ -1,6 +1,7 @@
 from copy import deepcopy
 import tkinter as tk
 from random import *
+from tkinter import messagebox
 
 from Constants import *
 
@@ -20,6 +21,7 @@ class BoardCanvas(tk.Canvas):
         self.play_as = B
         self.depth = 3
         self.calculating = False # solves undo redo problem
+        self.game_state = "" # win or lose or draw or Zugzwang
 
         self.show_vm_as = EVAL
         self.is_draw_valid_moves = True
@@ -32,6 +34,7 @@ class BoardCanvas(tk.Canvas):
         self.bind("<Leave>", self.on_leave)
     
     def init_board(self, col, row):
+        self.turn = B
         self.array = [[EMPTY for i in range(self.row)] for j in range(self.col)]
         tc = col // 2
         tr = row // 2
@@ -87,6 +90,27 @@ class BoardCanvas(tk.Canvas):
                     
                 self.switch_turn()
                 self.valid_moves = self.get_valid_moves(self.array, self.turn)
+                if self.valid_moves:
+                    pass
+                else:
+                    self.switch_turn()
+                    self.valid_moves = self.get_valid_moves(self.array, self.turn)
+                    print(self.valid_moves)
+                    if not self.valid_moves:
+                        wl = self.get_pieces_left(W)
+                        bl = self.get_pieces_left(B)
+                        if wl > bl:
+                            self.game_state = WHITE_WINS
+                        elif wl < bl:
+                            self.game_state = BLACK_WINS
+                        else:
+                            self.game_state = DRAW
+                    else:
+                        if self.turn == W:
+                            self.game_state = ZUGZWANG_WHITE
+                        else:
+                            self.game_state = ZUGZWANG_BLACK
+                        
                 self.capturable_list = self.get_capturable(self.array, self.turn, self.valid_moves)
                 self.reset_eval_list()
                 self.redraw()

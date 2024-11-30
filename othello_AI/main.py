@@ -13,6 +13,7 @@ app = App()
 class Bootstrap():
     def __init__(self, app:App):
         self.r = app
+        self.r.title("Othello - not for noobs!")
         self.mode = EDIT_MODE
         self.bC = BoardCanvas(app)
         self.upC = UpperCanvas(app)
@@ -131,12 +132,16 @@ class Bootstrap():
         self.update_side_canvas()
 
     def app_clicked(self, event):
-        self.bC.clicked(event)
-        self.set_mode()
+        if not self.bC.animating:
+            self.bC.clicked(event)
+            self.set_mode()
 
-        self.upC.w_counter['text'] = "White: " + str(self.bC.get_pieces_left(W))
-        self.upC.b_counter['text'] = "White: " + str(self.bC.get_pieces_left(W))
-        self.update_side_canvas()
+            self.upC.w_counter['text'] = "White: " + str(self.bC.get_pieces_left(W))
+            self.upC.b_counter['text'] = "White: " + str(self.bC.get_pieces_left(W))
+            self.update_side_canvas()
+            if self.bC.game_state:
+                messagebox.showinfo(self.bC.game_state[0], self.bC.game_state[1])
+                self.bC.game_state = ""
 
 
     def _update(self, event):
