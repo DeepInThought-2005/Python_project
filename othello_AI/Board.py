@@ -95,7 +95,6 @@ class BoardCanvas(tk.Canvas):
                 else:
                     self.switch_turn()
                     self.valid_moves = self.get_valid_moves(self.array, self.turn)
-                    print(self.valid_moves)
                     if not self.valid_moves:
                         wl = self.get_pieces_left(W)
                         bl = self.get_pieces_left(B)
