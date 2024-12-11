@@ -121,6 +121,7 @@ class Bootstrap():
 
     def AI_move(self, event=None):
         self.bC.AI_move()
+        self.bC.update_game_state()
         self.update_side_canvas()
 
     def undo(self, event=None):
@@ -132,12 +133,12 @@ class Bootstrap():
         self.update_side_canvas()
 
     def app_clicked(self, event):
-        if not self.bC.animating:
+        if not self.bC.animating and not self.bC.calculating:
             self.bC.clicked(event)
             self.set_mode()
 
             self.upC.w_counter['text'] = "White: " + str(self.bC.get_pieces_left(W))
-            self.upC.b_counter['text'] = "White: " + str(self.bC.get_pieces_left(W))
+            self.upC.b_counter['text'] = "Black: " + str(self.bC.get_pieces_left(W))
             self.update_side_canvas()
             if self.bC.game_state:
                 messagebox.showinfo(self.bC.game_state[0], self.bC.game_state[1])

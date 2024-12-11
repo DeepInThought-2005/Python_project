@@ -17,7 +17,6 @@ class BoardCanvas(tk.Canvas):
         self.row = 8
         self.weight_table = generate_weight_board(self.col, self.row)
         self.mode = HUMAN_HUMAN
-        self.ai_level = 2
         self.play_as = B
         self.depth = 3
         self.calculating = False # solves undo redo problem
@@ -89,38 +88,47 @@ class BoardCanvas(tk.Canvas):
                     self.apply_move(self.array, x, y, self.turn)
                     
                 self.switch_turn()
+                # self.redraw()
+                self.update()
                 self.valid_moves = self.get_valid_moves(self.array, self.turn)
                 if self.valid_moves:
                     pass
                 else:
-                    self.switch_turn()
-                    self.valid_moves = self.get_valid_moves(self.array, self.turn)
-                    if not self.valid_moves:
-                        wl = self.get_pieces_left(W)
-                        bl = self.get_pieces_left(B)
-                        if wl > bl:
-                            self.game_state = WHITE_WINS
-                        elif wl < bl:
-                            self.game_state = BLACK_WINS
-                        else:
-                            self.game_state = DRAW
-                    else:
-                        if self.turn == W:
-                            self.game_state = ZUGZWANG_WHITE
-                        else:
-                            self.game_state = ZUGZWANG_BLACK
+                    self.update_game_state()
                         
                 self.capturable_list = self.get_capturable(self.array, self.turn, self.valid_moves)
                 self.reset_eval_list()
-                self.redraw()
                 self.print_board(self.array)
 
                 if self.mode == HUMAN_AI:
                     self.AI_move()
+                    self.redraw()
+                    self.update()
+                    self.print_board(self.array)
+
+    def update_game_state(self):
+        self.switch_turn()
+        self.valid_moves = self.get_valid_moves(self.array, self.turn)
+        if not self.valid_moves:
+            wl = self.get_pieces_left(W)
+            bl = self.get_pieces_left(B)
+            if wl > bl:
+                self.game_state = WHITE_WINS
+            elif wl < bl:
+                self.game_state = BLACK_WINS
+            else:
+                self.game_state = DRAW
+        else:
+            if self.turn == W:
+                self.game_state = ZUGZWANG_WHITE
+            else:
+                self.game_state = ZUGZWANG_BLACK
     
     def reset_eval_list(self):
         self.calculating = True
+        self.update()
         self.eval_list = self.minimax(self.array, self.depth, True, self.turn, -INF, INF, self.determine_stage(self.array))[1]
+        # self.update()
         self.calculating = False
                     
     def apply_move(self, board, col, row, turn):
@@ -137,8 +145,9 @@ class BoardCanvas(tk.Canvas):
     def animate_move(self, board, x, y, turn):
         # apply move with animation
         to_flip = self.is_valid_move(board, turn, x, y)
-        self.undo_array.append(deepcopy(board))
-        self.redo_array = [] # reset redo array
+        if not self.calculating:
+            self.undo_array.append(deepcopy(board))
+            self.redo_array = [] # reset redo array
         board[x][y] = self.turn
         self.is_draw_valid_moves = False
         self.redraw()
@@ -173,8 +182,7 @@ class BoardCanvas(tk.Canvas):
         self.delete(tk.ALL)
         self.draw_board()
         self.draw_pieces()
-        if self.is_draw_valid_moves:
-            self.draw_valid_moves(self.valid_moves)
+        self.draw_valid_moves(self.valid_moves)
 
     def get_pieces_left(self, color=None):
         result = 0
@@ -217,6 +225,7 @@ class BoardCanvas(tk.Canvas):
             arr[col][row] = W
 
     def animate_flip(self, col, row, turn):       
+        mulp = 0.08
         if turn == W:
             t = B
         else:
@@ -319,7 +328,7 @@ class BoardCanvas(tk.Canvas):
         return moves
 
     def draw_valid_moves(self, moves):
-        if self.is_draw_valid_moves:
+        if self.is_draw_valid_moves and not self.calculating:
             for move in moves:
                 self.draw_valid_move(move[0], move[1])
 
@@ -499,6 +508,13 @@ class BoardCanvas(tk.Canvas):
                     self.apply_move(self.array, max_key[0], max_key[1], self.turn)
 
             self.switch_turn()
+
+            self.valid_moves = self.get_valid_moves(self.array, self.turn)
+            if self.valid_moves:
+                pass
+            else:
+                self.update_game_state()
+
             self.valid_moves = self.get_valid_moves(self.array, self.turn)
             self.capturable_list = self.get_capturable(self.array, self.turn, self.valid_moves)
             self.reset_eval_list()

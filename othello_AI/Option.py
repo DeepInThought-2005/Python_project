@@ -12,7 +12,7 @@ class Option(tk.Canvas):
         self.on_off = ("on", "off")
         self.show_vm_as = (EVAL, CAPTURABLE, DOT, INVIS)
         self.mode = ("HUMAN-HUMAN", "HUMAN-AI", "AI-AI")
-        self.depth = (1, 2, 3, 4, 5, 6)
+        self.depth = (1, 2, 3, 4, 5, 6, 7, 8)
 
         self.row = 0
         self.col = 0
@@ -98,7 +98,7 @@ class Option(tk.Canvas):
 
         self.row_f.pack(pady=10)
         self.col_f.pack(pady=10)
-        self.is_show_eval_f.pack(pady=10)
+        # self.is_show_eval_f.pack(pady=10)
         self.is_show_vm_f.pack(pady=10)
         self.is_anime_f.pack(pady=10)
         self.mode_f.pack(pady=10)
