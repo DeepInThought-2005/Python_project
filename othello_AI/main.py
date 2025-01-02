@@ -35,7 +35,7 @@ class Bootstrap():
         self.game_menu.add_command(label="new game", command=lambda: self.bC.init_board(self.bC.col, self.bC.row))
         self.game_menu.add_command(label="undo (Ctrl+Z)", command=self.bC.undo)
         self.game_menu.add_command(label="redo (Ctrl+Y)", command=self.bC.redo)
-        self.game_menu.add_command(label="AI move (Ctrl+A)", command=self.bC.AI_move)
+        self.game_menu.add_command(label="AI move (Ctrl+A)", command=self.AI_move)
 
         self.pack_all()
         self.r.bind("<Configure>", self._update)
@@ -46,6 +46,9 @@ class Bootstrap():
 
         # self.bC.get_move_scores(B, 3)
         # self.bC.print_board()
+        self.reset_eval_list()
+        self.bC.redraw()
+        self.update_side_canvas()
         
     def option_onclick(self):
         self.upC.pack_forget()
@@ -57,12 +60,18 @@ class Bootstrap():
             self.pack_all()
     
         def on_save():
+            self.options.pack_forget()
+            self.pack_all()
             t_col = self.bC.col
             self.bC.col = self.options.colVar.get()
             t_row = self.bC.row
             self.bC.row = self.options.rowVar.get()
+            if t_col != self.bC.col or t_row != self.bC.row:
+                self.bC.init_board(self.bC.col, self.bC.row)
+            self._update(None)
             self.bC.weight_table = generate_weight_board(self.bC.col, self.bC.row)
             self.bC.show_vm_as = self.options.ShowVmVar.get()
+
             if self.options.ShowVmVar.get() == INVIS:
                 self.bC.is_draw_valid_moves = False
 
@@ -73,12 +82,11 @@ class Bootstrap():
 
             self.bC.mode = self.options.modeVar.get()
             self.bC.depth = self.options.depthVar.get()
+            self.bC.redraw()
+            if self.bC.show_vm_as == EVAL:
+                self.reset_eval_list()
         
-            self.options.pack_forget()
-            self.pack_all()
-            if t_col != self.bC.col or t_row != self.bC.row:
-                self.bC.init_board(self.bC.col, self.bC.row)
-            self._update(None)
+
 
         self.options.cancel_b.configure(command=on_close)
         self.options.save_b.configure(command=on_save)
@@ -92,37 +100,41 @@ class Bootstrap():
         # self.lC.pack_self()
         self.bC.pack_self()
         self.unC.pack_self()
-
-    def set_mode(self):
-        if self.bC.mode == HUMAN_AI:
-            if self.bC.play_as == W:
-                if self.bC.turn == W:
-                    self.unC.hint['text'] = "Your move..."
-                else:
-                    self.unC.hint['text'] = "Computer is thinking..."
-
-        elif self.bC.mode == HUMAN_HUMAN:
-            if self.bC.play_as == W:
-                if self.bC.turn == W:
-                    self.unC.hint['text'] = "Player 1 to move..."
-                else:
-                    self.unC.hint['text'] = "Player 2 to move..."
         
     def edit_mode(self):
         pass
 
     def update_side_canvas(self):
-        self.upC.b_counter['text'] = "White: " + str(self.bC.get_pieces_left(B))
+        self.upC.b_counter['text'] = "Black: " + str(self.bC.get_pieces_left(B))
         self.upC.w_counter['text'] = "White: " + str(self.bC.get_pieces_left(W))
-        if self.bC.turn == B:
-            self.unC.hint['text'] = "Black to move..."
-        else:
-            self.unC.hint['text'] = "White to move..."
+        if not self.bC.calculating:
+            if self.bC.turn == B:
+                self.unC.hint['text'] = "Black to move..."
+            else:
+                self.unC.hint['text'] = "White to move..."
 
     def AI_move(self, event=None):
-        self.bC.AI_move()
-        self.bC.update_game_state()
-        self.update_side_canvas()
+        if not self.bC.animating and not self.bC.calculating:
+            self.reset_eval_list()
+            self.bC.AI_move()
+            self.bC.valid_moves = self.bC.get_valid_moves(self.bC.array, self.bC.turn)
+            self.bC.capturable_list = self.bC.get_capturable(self.bC.array, self.bC.turn, self.bC.valid_moves)
+            if self.bC.show_vm_as == EVAL:
+                self.reset_eval_list()
+
+            if not self.bC.valid_moves:
+                self.bC.switch_turn()
+                self.bC.valid_moves = self.bC.get_valid_moves(self.bC.array, self.bC.turn)
+                self.bC.capturable_list = self.bC.get_capturable(self.bC.array, self.bC.turn, self.bC.valid_moves)
+                if not self.bC.valid_moves:
+                    self.update_side_canvas()
+                    self.bC.redraw()
+                    messagebox.showinfo("Game ends", self.get_game_state())
+            self.bC.redraw()
+            self.bC.update()
+            self.bC.print_board(self.bC.array)
+
+            self.update_side_canvas()
 
     def undo(self, event=None):
         self.bC.undo()
@@ -134,16 +146,83 @@ class Bootstrap():
 
     def app_clicked(self, event):
         if not self.bC.animating and not self.bC.calculating:
-            self.bC.clicked(event)
-            self.set_mode()
+            if(self.bC.clicked(event)):                          
+                self.bC.switch_turn()
+                self.bC.valid_moves = self.bC.get_valid_moves(self.bC.array, self.bC.turn)
+                self.bC.capturable_list = self.bC.get_capturable(self.bC.array, self.bC.turn, self.bC.valid_moves)
+                self.bC.redraw()
 
-            self.upC.w_counter['text'] = "White: " + str(self.bC.get_pieces_left(W))
-            self.upC.b_counter['text'] = "Black: " + str(self.bC.get_pieces_left(W))
+                if not self.bC.valid_moves and self.bC.mode != HUMAN_AI:
+                    self.bC.switch_turn()
+                    self.bC.valid_moves = self.bC.get_valid_moves(self.bC.array, self.bC.turn)
+                    self.bC.capturable_list = self.bC.get_capturable(self.bC.array, self.bC.turn, self.bC.valid_moves)
+                    if not self.bC.valid_moves:
+                        self.update_side_canvas()
+                        self.bC.redraw()
+                        messagebox.showinfo("Game ends", self.get_game_state())
+
+
+                if self.bC.show_vm_as == EVAL:
+                    self.update_side_canvas()
+                    self.reset_eval_list()
+                    self.bC.valid_moves = self.bC.get_valid_moves(self.bC.array, self.bC.turn)
+                    self.bC.capturable_list = self.bC.get_capturable(self.bC.array, self.bC.turn, self.bC.valid_moves)
+                    self.bC.redraw()
+
+                if self.bC.mode == HUMAN_AI:
+                    if(self.bC.get_valid_moves(self.bC.array, self.bC.turn)):
+                        self.update_side_canvas()
+                        temp = True
+                        while(temp):
+                            self.reset_eval_list()
+                            if(self.bC.AI_move()):
+                                self.bC.valid_moves = self.bC.get_valid_moves(self.bC.array, self.bC.turn)
+                                self.bC.capturable_list = self.bC.get_capturable(self.bC.array, self.bC.turn, self.bC.valid_moves)
+
+                                if not self.bC.valid_moves:
+                                    self.bC.switch_turn()
+                                    self.bC.valid_moves = self.bC.get_valid_moves(self.bC.array, self.bC.turn)
+                                    self.bC.capturable_list = self.bC.get_capturable(self.bC.array, self.bC.turn, self.bC.valid_moves)
+                                    if not self.bC.valid_moves:
+                                        self.update_side_canvas()
+                                        self.bC.redraw()
+                                        messagebox.showinfo("Game ends", self.get_game_state())
+                                        temp = False
+                                else:
+                                    temp = False
+                            else:
+                                temp = False
+
+                        self.bC.redraw()
+                        self.bC.update()
+                        self.bC.print_board(self.bC.array)
+                    else:
+                        self.bC.switch_turn()
+                        self.bC.valid_moves = self.bC.get_valid_moves(self.bC.array, self.bC.turn)
+                        self.bC.capturable_list = self.bC.get_capturable(self.bC.array, self.bC.turn, self.bC.valid_moves)
+
+                        if not self.bC.valid_moves:
+                            self.update_side_canvas()
+                            self.bC.redraw()
+                            messagebox.showinfo("Game ends", self.get_game_state())
+                        self.bC.redraw()
+                        self.bC.update()
+                        self.bC.print_board(self.bC.array)
+
+            
             self.update_side_canvas()
-            if self.bC.game_state:
-                messagebox.showinfo(self.bC.game_state[0], self.bC.game_state[1])
-                self.bC.game_state = ""
 
+
+    def get_game_state(self):
+        msg = ""
+        if self.bC.get_pieces_left(B) > self.bC.get_pieces_left(W):
+            msg = "Black wins!"
+        elif self.bC.get_pieces_left(B) < self.bC.get_pieces_left(W):
+            msg = "White wins!"
+        else:
+            msg = "Draw!"
+        
+        return msg
 
     def _update(self, event):
         if self.r.winfo_height() > self.r.winfo_width():
@@ -156,13 +235,61 @@ class Bootstrap():
         self.upC.size_update(event)
         self.unC.size_update(event)
 
-        self.upC.w_counter['text'] = "White: " + str(self.bC.get_pieces_left(W))
-        self.upC.b_counter['text'] = "Black: " + str(self.bC.get_pieces_left(B))
+        self.update_side_canvas()
 
-        self.set_mode()
         self.bC.redraw()
         # self.unC.draw_pieces_left(self.bC.pieces_left[B], self.bC.col, self.bC.row)
         # self.upC.draw_pieces_left(self.bC.pieces_left[W], self.bC.col, self.bC.row)
+
+    def minimax(self, board, depth, maximizing_player, turn, alpha, beta):
+        self.bC.counter+=1
+        self.unC.hint['text'] = "Calculated " + str(self.bC.counter) + " positions..."
+        self.unC.update()
+        if turn == W:
+            opponent = B
+        else:
+            opponent = W
+        if maximizing_player:
+            valid_moves = self.bC.get_valid_moves(board, turn)
+        else:
+            valid_moves = self.bC.get_valid_moves(board, opponent)
+        
+        if depth == 0 or not valid_moves:
+            return self.bC.evaluate(board, turn), []
+        
+        move_evaluations = {}
+        
+        if maximizing_player:
+            max_eval = -INF
+            for move in valid_moves:
+                new_board = self.bC.apply_move([row[:] for row in board], move[0], move[1], turn)
+                eval, _ = self.minimax(new_board, depth - 1, False, turn, alpha, beta)
+                move_evaluations[move] = eval
+                max_eval = max(max_eval, eval)
+                alpha = max(alpha, eval)
+                if beta <= alpha:
+                    break
+            return max_eval, move_evaluations
+        else:
+            min_eval = INF
+            for move in valid_moves:
+                new_board = self.bC.apply_move([row[:] for row in board], move[0], move[1], opponent)
+                eval, _ = self.minimax(new_board, depth - 1, True, turn, alpha, beta)
+                move_evaluations[move] = eval
+                min_eval = min(min_eval, eval)
+                beta = min(beta, eval)
+                if beta <= alpha:
+                    break
+            return min_eval, move_evaluations
+    
+        
+    def reset_eval_list(self):
+        self.bC.calculating = True
+        self.bC.update()
+        self.bC.counter = 0
+        self.bC.eval_list = self.minimax(self.bC.array, self.bC.depth, True, self.bC.turn, -INF, INF)[1]
+        # self.update()
+        self.bC.calculating = False
             
 
 if __name__ == "__main__":

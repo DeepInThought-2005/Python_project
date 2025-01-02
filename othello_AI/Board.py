@@ -13,6 +13,8 @@ class BoardCanvas(tk.Canvas):
         self.configure(highlightthickness=1, highlightbackground="black",  
                        width=WIN_WIDTH-self._padx*2, height=WIN_WIDTH-self._padx*2)   
         self.turn = B
+        self.AI_color = W
+        self.valid_move_color = "#8B7D6B"
         self.col = 8
         self.row = 8
         self.weight_table = generate_weight_board(self.col, self.row)
@@ -20,15 +22,14 @@ class BoardCanvas(tk.Canvas):
         self.play_as = B
         self.depth = 3
         self.calculating = False # solves undo redo problem
-        self.game_state = "" # win or lose or draw or Zugzwang
+        self.counter = 0 # calculated position counter
 
-        self.show_vm_as = EVAL
+        self.show_vm_as = CAPTURABLE
         self.is_draw_valid_moves = True
         self.is_animating_flip = True
 
         self.init_board(self.col, self.row)
 
-        # self.bind("<Button-1>", self.clicked)
         self.bind("<Motion>", self.on_hover)
         self.bind("<Leave>", self.on_leave)
     
@@ -49,7 +50,6 @@ class BoardCanvas(tk.Canvas):
         self.valid_moves = self.get_valid_moves(self.array, self.turn)
         self.hover_pos = (0, 0)
         self.capturable_list = self.get_capturable(self.array, self.turn, self.valid_moves) # amount of capturable pieces in every valid moves
-        self.reset_eval_list()
         self.animating = False # for on_hover purpose
         self.redraw()
 
@@ -70,72 +70,50 @@ class BoardCanvas(tk.Canvas):
                     self.place_text(x, y, self.capturable_list[(x, y)], size, "#FFA500", "hover")
                 elif self.show_vm_as == EVAL:
                     self.delete("hover")
-                    self.place_text(x, y, self.eval_list[(x, y)], size, "#FFA500", "hover")    
+                    self.place_text(x, y, self.eval_list[(x, y)], size, "#FFA500", "hover")
+
+                moves = self.is_valid_move(self.array, self.turn, x, y)
+                mulp = 0.1
+                for move in moves:
+                    self.create_line(move[0]*self.get_cell_width()+self.get_cell_width() * mulp, 
+                                     move[1]*self.get_cell_height()+self.get_cell_height() * mulp,
+                                     (move[0]+1)*self.get_cell_width()-self.get_cell_width() * mulp,
+                                     (move[1]+1)*self.get_cell_height()-self.get_cell_height() * mulp, 
+                                     tags="hover", fill=self.valid_move_color, width=2)
+
+                    self.create_line((move[0]+1)*self.get_cell_width()-self.get_cell_width() * mulp, 
+                                     move[1]*self.get_cell_height()+self.get_cell_height() * mulp,
+                                     move[0]*self.get_cell_width()+self.get_cell_width() * mulp,
+                                     (move[1]+1)*self.get_cell_height()-self.get_cell_height() * mulp, 
+                                     tags="hover", fill=self.valid_move_color, width=2)      
 
         else:
             self.configure(cursor="arrow")
             self.delete("hover")
     
     def clicked(self, event):
+        to_flip = False
         x = int(event.x // (self.winfo_width() / self.col))
         y = int(event.y // (self.winfo_height() / self.row))
         if x < self.col and y < self.row:
             to_flip = self.is_valid_move(self.array, self.turn, x, y)
             if to_flip:
                 if self.is_animating_flip:
+                    self.animating = True
                     self.animate_move(self.array, x, y, self.turn)
+                    self.animating = False
                 else:
                     self.apply_move(self.array, x, y, self.turn)
                     
-                self.switch_turn()
-                # self.redraw()
-                self.update()
-                self.valid_moves = self.get_valid_moves(self.array, self.turn)
-                if self.valid_moves:
-                    pass
-                else:
-                    self.update_game_state()
-                        
-                self.capturable_list = self.get_capturable(self.array, self.turn, self.valid_moves)
-                self.reset_eval_list()
                 self.print_board(self.array)
 
-                if self.mode == HUMAN_AI:
-                    self.AI_move()
-                    self.redraw()
-                    self.update()
-                    self.print_board(self.array)
-
-    def update_game_state(self):
-        self.switch_turn()
-        self.valid_moves = self.get_valid_moves(self.array, self.turn)
-        if not self.valid_moves:
-            wl = self.get_pieces_left(W)
-            bl = self.get_pieces_left(B)
-            if wl > bl:
-                self.game_state = WHITE_WINS
-            elif wl < bl:
-                self.game_state = BLACK_WINS
-            else:
-                self.game_state = DRAW
-        else:
-            if self.turn == W:
-                self.game_state = ZUGZWANG_WHITE
-            else:
-                self.game_state = ZUGZWANG_BLACK
-    
-    def reset_eval_list(self):
-        self.calculating = True
-        self.update()
-        self.eval_list = self.minimax(self.array, self.depth, True, self.turn, -INF, INF, self.determine_stage(self.array))[1]
-        # self.update()
-        self.calculating = False
+        return to_flip
                     
     def apply_move(self, board, col, row, turn):
         # apply move without animation
         to_flip = self.is_valid_move(board, turn, col, row)
         if not self.calculating:
-            self.undo_array.append(deepcopy(board))
+            self.undo_array.append([deepcopy(board), turn])
             self.redo_array = [] # reset redo array
         board[col][row] = turn
         for move in to_flip:
@@ -146,7 +124,7 @@ class BoardCanvas(tk.Canvas):
         # apply move with animation
         to_flip = self.is_valid_move(board, turn, x, y)
         if not self.calculating:
-            self.undo_array.append(deepcopy(board))
+            self.undo_array.append([deepcopy(board), turn])
             self.redo_array = [] # reset redo array
         board[x][y] = self.turn
         self.is_draw_valid_moves = False
@@ -198,22 +176,22 @@ class BoardCanvas(tk.Canvas):
 
     def undo(self):
         if len(self.undo_array) > 1:
-            self.redo_array.append(deepcopy(self.array))
-            self.array = deepcopy(self.undo_array.pop())
-            self.switch_turn()
+            self.redo_array.append([deepcopy(self.array), deepcopy(self.turn)])
+            self.array, self.turn = deepcopy(self.undo_array.pop())
             self.valid_moves = self.get_valid_moves(self.array, self.turn)
             self.capturable_list = self.get_capturable(self.array, self.turn, self.valid_moves)
-            self.reset_eval_list()
+            if self.show_vm_as == EVAL:
+                self.reset_eval_list()
             self.redraw()
 
     def redo(self):
         if len(self.redo_array) > 0:
-            self.undo_array.append(deepcopy(self.array))
-            self.array = deepcopy(self.redo_array.pop())
-            self.switch_turn()
+            self.undo_array.append([deepcopy(self.array), deepcopy(self.turn)])
+            self.array, self.turn = deepcopy(self.redo_array.pop())
             self.valid_moves = self.get_valid_moves(self.array, self.turn)
             self.capturable_list = self.get_capturable(self.array, self.turn, self.valid_moves)
-            self.reset_eval_list()
+            if self.show_vm_as == EVAL:
+                self.reset_eval_list()
             self.redraw()
     
     def flip_piece(self, arr, col, row):
@@ -333,7 +311,9 @@ class BoardCanvas(tk.Canvas):
                 self.draw_valid_move(move[0], move[1])
 
     def draw_valid_move(self, col, row):
-        c = '#98FF98'
+        # c = '#98FF98'
+
+        c = self.valid_move_color
         size = min(self.r.winfo_height(), self.r.winfo_width()) // 30
 
         if self.show_vm_as == EVAL:
@@ -423,99 +403,121 @@ class BoardCanvas(tk.Canvas):
         print()
 
     def determine_stage(self, board):
-        total_discs = sum(cell != EMPTY for row in board for cell in row)
-        if total_discs <= self.row*self.col // 3:
-            return "opening"
-        elif total_discs <= self.row*self.col // 5 * 4:
-            return "midgame"
-        else:
-            return "endgame"
+        pass
 
-    def evaluate(self, board, turn, stage):
+    # def evaluate(self, board, turn):
+    #     total_discs = sum(cell != EMPTY for row in board for cell in row)
+    #     if total_discs <= self.row*self.col // 3:
+    #         stage = "opening"
+    #     elif total_discs <= self.row*self.col // 5 * 4:
+    #         stage = "midgame"
+    #     else:
+    #         stage = "endgame"
+    #     opponent = B if turn == W else W
+    #     player_score = 0
+    #     opponent_score = 0
+
+    #     for row in range(self.row):
+    #         for col in range(self.col):
+    #             if board[col][row] == turn:
+    #                 if stage == "opening":
+    #                     player_score += self.weight_table[col][row]
+    #                 elif stage == "midgame":
+    #                     player_score += self.weight_table[col][row] // 2
+    #                 else:  # endgame
+    #                     player_score += 1
+    #             elif board[col][row] == opponent:
+    #                 if stage == "opening":
+    #                     opponent_score += self.weight_table[col][row]
+    #                 elif stage == "midgame":
+    #                     opponent_score += self.weight_table[col][row] // 2
+    #                 else:  # endgame
+    #                     opponent_score += 1
+
+    #     return player_score - opponent_score
+
+
+    def evaluate(self, board, turn):
         opponent = B if turn == W else W
-        player_score = 0
-        opponent_score = 0
-
+        piece_count_score = 0
+        mobility_score = 0
+        corner_score = 0
+        worst_tile_score = 0
+        
+        piece_count_player = 0
+        piece_count_opponent = 0
+        
+        corners = [(0, 0), (0, self.row - 1), (self.col - 1, 0), (self.col-1, self.row-1)]
+        worst_tile = [(1, 1), (1, self.row-2), (self.col-2, 1), (self.col-2, self.row-2)]
+        
         for row in range(self.row):
             for col in range(self.col):
                 if board[col][row] == turn:
-                    if stage == "opening":
-                        player_score += self.weight_table[col][row]
-                    elif stage == "midgame":
-                        player_score += self.weight_table[col][row] // 2
-                    else:  # endgame
-                        player_score += 1
-                elif board[col][row] == opponent:
-                    if stage == "opening":
-                        opponent_score += self.weight_table[col][row]
-                    elif stage == "midgame":
-                        opponent_score += self.weight_table[col][row] // 2
-                    else:  # endgame
-                        opponent_score += 1
+                    piece_count_player += 1
+                    if (col, row) in corners:
+                        corner_score += 25
+                    if (col, row) in worst_tile:
+                        worst_tile_score -= 25
 
-        return player_score - opponent_score
+                    # Here we could add more complex stability calculations
+                elif board[col][row] == opponent:
+                    piece_count_opponent += 1
+                    if (col, row) in corners:
+                        corner_score -= 25
+                    if (col, row) in worst_tile:
+                        worst_tile_score += 25
         
-    def minimax(self, board, depth, maximizing_player, turn, alpha, beta, stage):
-        opponent = B if turn == W else B
-        if maximizing_player:
-            valid_moves = self.get_valid_moves(board, turn)
-        else:
-            valid_moves = self.get_valid_moves(board, opponent)
+        piece_count_score = piece_count_player - piece_count_opponent
         
-        if depth == 0 or not valid_moves:
-            return self.evaluate(board, turn, stage), []
+        # Calculate mobility
+        legal_moves_player = len(self.get_valid_moves(board, turn))
+        legal_moves_opponent = len(self.get_valid_moves(board, opponent))
+        mobility_score = legal_moves_player - legal_moves_opponent
         
-        move_evaluations = {}
+
+        total_discs = sum(cell != EMPTY for row in board for cell in row)
+        if total_discs <= self.row*self.col // 3: #opening
+            score = (piece_count_score * 1) + (mobility_score * 75) + (corner_score * 200) + (worst_tile_score*100)
+        elif total_discs <= self.row*self.col // 5 * 4: #midgame
+            score = (piece_count_score * 1) + (mobility_score * 50) + (corner_score * 100) + (worst_tile_score*50)
+        else: #endgame
+            score = (piece_count_score * 50) + (mobility_score * 10) + (corner_score * 25) + (worst_tile_score*5)
+
+        # Combining all the scores with different weights
         
-        if maximizing_player:
-            max_eval = -INF
-            for move in valid_moves:
-                new_board = self.apply_move([row[:] for row in board], move[0], move[1], turn)
-                eval, _ = self.minimax(new_board, depth - 1, False, turn, alpha, beta, self.determine_stage(new_board))
-                move_evaluations[move] = eval
-                max_eval = max(max_eval, eval)
-                alpha = max(alpha, eval)
-                if beta <= alpha:
-                    break
-            return max_eval, move_evaluations
-        else:
-            min_eval = INF
-            for move in valid_moves:
-                new_board = self.apply_move([row[:] for row in board], move[0], move[1], opponent)
-                eval, _ = self.minimax(new_board, depth - 1, True, turn, alpha, beta, self.determine_stage(new_board))
-                move_evaluations[move] = eval
-                min_eval = min(min_eval, eval)
-                beta = min(beta, eval)
-                if beta <= alpha:
-                    break
-            return min_eval, move_evaluations
+        return score
+
+
     
     def AI_move(self):
-        if not self.animating:
+        to_flip = False
+        if not self.animating and not self.calculating:
             # make a move with AI
+            best_key = ()
+            # if self.turn == W:
             max_value = -INF
-            max_key = ()
             for key, value in self.eval_list.items():
                 if value > max_value:
                     max_value = value
-                    max_key = key
+                    best_key = key
+            # else:
+            #     min_value = INF
+            #     for key, value in self.eval_list.items():
+            #         if value < min_value:
+            #             min_value = value
+            #             best_key = key
 
-            to_flip = self.is_valid_move(self.array, self.turn, max_key[0], max_key[1])
+            to_flip = self.is_valid_move(self.array, self.turn, best_key[0], best_key[1])
             if to_flip:
+                self.AI_color = self.turn
                 if self.is_animating_flip:
-                    self.animate_move(self.array, max_key[0], max_key[1], self.turn)
+                    self.animate_move(self.array, best_key[0], best_key[1], self.turn)
                 else:
-                    self.apply_move(self.array, max_key[0], max_key[1], self.turn)
+                    self.apply_move(self.array, best_key[0], best_key[1], self.turn)
+                self.switch_turn()
 
-            self.switch_turn()
-
-            self.valid_moves = self.get_valid_moves(self.array, self.turn)
-            if self.valid_moves:
-                pass
-            else:
-                self.update_game_state()
 
             self.valid_moves = self.get_valid_moves(self.array, self.turn)
             self.capturable_list = self.get_capturable(self.array, self.turn, self.valid_moves)
-            self.reset_eval_list()
-            self.redraw()
+        
+        return to_flip

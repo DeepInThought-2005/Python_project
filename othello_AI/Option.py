@@ -10,9 +10,9 @@ class Option(tk.Canvas):
 
         self.row_column_list = (4, 6, 8, 10 ,12, 14, 16)
         self.on_off = ("on", "off")
-        self.show_vm_as = (EVAL, CAPTURABLE, DOT, INVIS)
-        self.mode = ("HUMAN-HUMAN", "HUMAN-AI", "AI-AI")
-        self.depth = (1, 2, 3, 4, 5, 6, 7, 8)
+        self.show_vm_as = (CAPTURABLE, DOT, INVIS)
+        self.mode = ("HUMAN-HUMAN", "HUMAN-AI")
+        self.depth = (1, 2, 3, 4, 5, 6)
 
         self.row = 0
         self.col = 0
@@ -46,7 +46,7 @@ class Option(tk.Canvas):
 
         # show_valid_move
         self.ShowVmVar = tk.StringVar() # is show valid move?
-        self.ShowVmVar.set(EVAL)
+        self.ShowVmVar.set(CAPTURABLE)
         self.is_show_vm_f = tk.Frame(self)
         self.is_show_vm_l = tk.Label(self.is_show_vm_f, text="Show valid move as: ")
         self.is_show_vm_l.grid(column=0, row=0, sticky = tk.E)
@@ -54,7 +54,7 @@ class Option(tk.Canvas):
         self.is_show_vm_o.grid(column=1, row=0, sticky = tk.W)
 
         # is_animating
-        self.isAnimeVar = tk.StringVar() # is show valid move?
+        self.isAnimeVar = tk.StringVar() # is animating
         self.isAnimeVar.set("on")
         self.is_anime_f = tk.Frame(self)
         self.is_anime_l = tk.Label(self.is_anime_f, text="Animating flip: ")

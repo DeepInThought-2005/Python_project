@@ -21,6 +21,7 @@ DOT = 'dot' # valid move draw style
 INVIS = 'invisible' # valid move draw style
 EMPTY = -1
 INF = 999999
+CALCULATING = 'calculating' # for main.py sidecanvas
 
 # Weight table for the board positions
 '''
