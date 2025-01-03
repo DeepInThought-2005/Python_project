@@ -13,7 +13,7 @@ app = App()
 class Bootstrap():
     def __init__(self, app:App):
         self.r = app
-        self.r.title("Othello - not for noobs!")
+        self.r.title("Othello - noobs better stay away!")
         self.mode = EDIT_MODE
         self.bC = BoardCanvas(app)
         self.upC = UpperCanvas(app)
@@ -63,9 +63,9 @@ class Bootstrap():
             self.options.pack_forget()
             self.pack_all()
             t_col = self.bC.col
-            self.bC.col = self.options.colVar.get()
+            self.bC.col = self.options.rowcolVar.get()
             t_row = self.bC.row
-            self.bC.row = self.options.rowVar.get()
+            self.bC.row = self.options.rowcolVar.get()
             if t_col != self.bC.col or t_row != self.bC.row:
                 self.bC.init_board(self.bC.col, self.bC.row)
             self._update(None)

@@ -46,28 +46,12 @@ class UnderCanvas(tk.Canvas):
     def __init__(self, root):
         super().__init__(root)
         self.r = root
-        self.undo = tk.Button(self, text="undo")
-
-        self.redo = tk.Button(self, text="redo")
 
         self.hint = tk.Label(self, text="Black to move...", font=("Helvetica", 25), bg=BG_COLOR, fg='lightgray')
 
         self.configure(bg=BG_COLOR, highlightbackground=BG_COLOR)
 
         self.bind("<Configure>", self.size_update)
-    
-    def draw_pieces_left(self, n, col, row):
-        w = self.winfo_width()
-        for i in range(n):
-            self.create_line(w/10*1+(i+1)*(w/10*8/(col*row/2)),
-                             self.winfo_height()/10*1,
-                             w/10*1+(i+1)*(w/10*8/(col*row/2)),
-                             self.winfo_height()/10*9)
-            self.create_rectangle(w/10*1+i*(w/10*8/(col*row/2)),
-                                  self.winfo_height()/10*1,
-                                  w/10*1+(i+0.5)*(w/10*8/(col*row/2)),
-                                  self.winfo_height()/10*9,
-                                  fill='black')
 
     def pack_self(self):
         self.hint.pack(expand=True)

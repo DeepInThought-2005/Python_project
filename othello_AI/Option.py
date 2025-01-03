@@ -17,32 +17,15 @@ class Option(tk.Canvas):
         self.row = 0
         self.col = 0
 
-        # Row list
-        self.rowVar = tk.IntVar()
-        self.rowVar.set(self.board.row)
-        self.row_f = tk.Frame(self)
-        self.row_l = tk.Label(self.row_f, text="Rows: ")
-        self.row_l.grid(column=0, row=0, sticky = tk.E)
-        self.row_o = tk.OptionMenu(self.row_f, self.rowVar, *self.row_column_list)
-        self.row_o.grid(column=1, row=0, sticky = tk.W)
+        # Row and Col list
+        self.rowcolVar = tk.IntVar()
+        self.rowcolVar.set(self.board.row)
+        self.rowcol_f = tk.Frame(self)
+        self.rowcol_l = tk.Label(self.rowcol_f, text="Board size: ")
+        self.rowcol_l.grid(column=0, row=0, sticky = tk.E)
+        self.rowcol_o = tk.OptionMenu(self.rowcol_f, self.rowcolVar, *self.row_column_list)
+        self.rowcol_o.grid(column=1, row=0, sticky = tk.W)
 
-        # Col list
-        self.colVar = tk.IntVar()
-        self.colVar.set(self.board.col)
-        self.col_f = tk.Frame(self)
-        self.col_l = tk.Label(self.col_f, text="Columns: ")
-        self.col_l.grid(column=0, row=0, sticky = tk.E)
-        self.col_o = tk.OptionMenu(self.col_f, self.colVar, *self.row_column_list)
-        self.col_o.grid(column=1, row=0, sticky = tk.W)
-
-        # Show evaluation list
-        self.validStyleVar = tk.StringVar()
-        self.validStyleVar.set("on")
-        self.is_show_eval_f = tk.Frame(self)
-        self.is_show_eval_l = tk.Label(self.is_show_eval_f, text="Show evalution: ")
-        self.is_show_eval_l.grid(column=0, row=0, sticky = tk.E)
-        self.is_show_eval_o = tk.OptionMenu(self.is_show_eval_f, self.validStyleVar, *self.on_off)
-        self.is_show_eval_o.grid(column=1, row=0, sticky = tk.W)
 
         # show_valid_move
         self.ShowVmVar = tk.StringVar() # is show valid move?
@@ -96,8 +79,7 @@ class Option(tk.Canvas):
         # self.cancel_b.pack(column=0, row=3, sticky="w", padx=10, pady=10)
         # self.save_b.pack(column=1, row=3, sticky="e", padx=10, pady=10)
 
-        self.row_f.pack(pady=10)
-        self.col_f.pack(pady=10)
+        self.rowcol_f.pack(pady=10)
         # self.is_show_eval_f.pack(pady=10)
         self.is_show_vm_f.pack(pady=10)
         self.is_anime_f.pack(pady=10)

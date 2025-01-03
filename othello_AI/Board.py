@@ -54,42 +54,43 @@ class BoardCanvas(tk.Canvas):
         self.redraw()
 
     def on_hover(self, event):
-        x = int(event.x // (self.winfo_width() / self.col))
-        y = int(event.y // (self.winfo_height() / self.row))
-        if (x, y) in self.valid_moves and not self.animating:
-            self.configure(cursor="hand2")
-            if self.is_draw_valid_moves:
-                size = min(self.r.winfo_height(), self.r.winfo_width()) // 30
-                if self.show_vm_as == DOT:
-                    self.delete("hover")
+        if not self.calculating and not self.animating:
+            x = int(event.x // (self.winfo_width() / self.col))
+            y = int(event.y // (self.winfo_height() / self.row))
+            if (x, y) in self.valid_moves and not self.animating:
+                self.configure(cursor="hand2")
+                if self.is_draw_valid_moves:
+                    size = min(self.r.winfo_height(), self.r.winfo_width()) // 30
+                    if self.show_vm_as == DOT:
+                        self.delete("hover")
+                        mulp = 0.1
+                        self.draw_circle(x, y, self.turn, self.turn, mulp, "hover")
+                        self.hover_pos = (x, y)
+                    elif self.show_vm_as == CAPTURABLE:
+                        self.delete("hover")
+                        self.place_text(x, y, self.capturable_list[(x, y)], size, "#FFA500", "hover")
+                    elif self.show_vm_as == EVAL:
+                        self.delete("hover")
+                        self.place_text(x, y, self.eval_list[(x, y)], size, "#FFA500", "hover")
+
+                    moves = self.is_valid_move(self.array, self.turn, x, y)
                     mulp = 0.1
-                    self.draw_circle(x, y, self.turn, self.turn, mulp, "hover")
-                    self.hover_pos = (x, y)
-                elif self.show_vm_as == CAPTURABLE:
-                    self.delete("hover")
-                    self.place_text(x, y, self.capturable_list[(x, y)], size, "#FFA500", "hover")
-                elif self.show_vm_as == EVAL:
-                    self.delete("hover")
-                    self.place_text(x, y, self.eval_list[(x, y)], size, "#FFA500", "hover")
+                    for move in moves:
+                        self.create_line(move[0]*self.get_cell_width()+self.get_cell_width() * mulp, 
+                                        move[1]*self.get_cell_height()+self.get_cell_height() * mulp,
+                                        (move[0]+1)*self.get_cell_width()-self.get_cell_width() * mulp,
+                                        (move[1]+1)*self.get_cell_height()-self.get_cell_height() * mulp, 
+                                        tags="hover", fill=self.valid_move_color, width=2)
 
-                moves = self.is_valid_move(self.array, self.turn, x, y)
-                mulp = 0.1
-                for move in moves:
-                    self.create_line(move[0]*self.get_cell_width()+self.get_cell_width() * mulp, 
-                                     move[1]*self.get_cell_height()+self.get_cell_height() * mulp,
-                                     (move[0]+1)*self.get_cell_width()-self.get_cell_width() * mulp,
-                                     (move[1]+1)*self.get_cell_height()-self.get_cell_height() * mulp, 
-                                     tags="hover", fill=self.valid_move_color, width=2)
+                        self.create_line((move[0]+1)*self.get_cell_width()-self.get_cell_width() * mulp, 
+                                        move[1]*self.get_cell_height()+self.get_cell_height() * mulp,
+                                        move[0]*self.get_cell_width()+self.get_cell_width() * mulp,
+                                        (move[1]+1)*self.get_cell_height()-self.get_cell_height() * mulp, 
+                                        tags="hover", fill=self.valid_move_color, width=2)      
 
-                    self.create_line((move[0]+1)*self.get_cell_width()-self.get_cell_width() * mulp, 
-                                     move[1]*self.get_cell_height()+self.get_cell_height() * mulp,
-                                     move[0]*self.get_cell_width()+self.get_cell_width() * mulp,
-                                     (move[1]+1)*self.get_cell_height()-self.get_cell_height() * mulp, 
-                                     tags="hover", fill=self.valid_move_color, width=2)      
-
-        else:
-            self.configure(cursor="arrow")
-            self.delete("hover")
+            else:
+                self.configure(cursor="arrow")
+                self.delete("hover")
     
     def clicked(self, event):
         to_flip = False
@@ -442,12 +443,14 @@ class BoardCanvas(tk.Canvas):
         piece_count_score = 0
         mobility_score = 0
         corner_score = 0
+        edge_score = 0
         worst_tile_score = 0
         
         piece_count_player = 0
         piece_count_opponent = 0
         
         corners = [(0, 0), (0, self.row - 1), (self.col - 1, 0), (self.col-1, self.row-1)]
+        edge = (0, self.col-1, self.row-1)
         worst_tile = [(1, 1), (1, self.row-2), (self.col-2, 1), (self.col-2, self.row-2)]
         
         for row in range(self.row):
@@ -458,6 +461,8 @@ class BoardCanvas(tk.Canvas):
                         corner_score += 25
                     if (col, row) in worst_tile:
                         worst_tile_score -= 25
+                    if col in edge or row in edge:
+                        edge_score += 15
 
                     # Here we could add more complex stability calculations
                 elif board[col][row] == opponent:
@@ -466,22 +471,22 @@ class BoardCanvas(tk.Canvas):
                         corner_score -= 25
                     if (col, row) in worst_tile:
                         worst_tile_score += 25
+                    if col in edge or row in edge:
+                        edge_score -= 15
         
         piece_count_score = piece_count_player - piece_count_opponent
         
         # Calculate mobility
         legal_moves_player = len(self.get_valid_moves(board, turn))
         legal_moves_opponent = len(self.get_valid_moves(board, opponent))
-        mobility_score = legal_moves_player - legal_moves_opponent
+        mobility_score = legal_moves_opponent - legal_moves_player
         
 
         total_discs = sum(cell != EMPTY for row in board for cell in row)
-        if total_discs <= self.row*self.col // 3: #opening
-            score = (piece_count_score * 1) + (mobility_score * 75) + (corner_score * 200) + (worst_tile_score*100)
-        elif total_discs <= self.row*self.col // 5 * 4: #midgame
-            score = (piece_count_score * 1) + (mobility_score * 50) + (corner_score * 100) + (worst_tile_score*50)
-        else: #endgame
-            score = (piece_count_score * 50) + (mobility_score * 10) + (corner_score * 25) + (worst_tile_score*5)
+        if total_discs >= self.depth: #opening
+            score = (piece_count_score * 1) + (mobility_score * 150) + (corner_score * 300) + (edge_score * 150) + (worst_tile_score*100)
+        if total_discs <= self.depth: #endgame
+            score = piece_count_score * 25
 
         # Combining all the scores with different weights
         
