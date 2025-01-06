@@ -15,6 +15,7 @@ class Bootstrap():
         self.r = app
         self.r.title("Othello - noobs better stay away!")
         self.mode = EDIT_MODE
+        self.is_in_option_menu = False
         self.bC = BoardCanvas(app)
         self.upC = UpperCanvas(app)
         self.unC = UnderCanvas(app)
@@ -51,6 +52,7 @@ class Bootstrap():
         self.update_side_canvas()
         
     def option_onclick(self):
+        self.is_in_option_menu = True
         self.upC.pack_forget()
         self.bC.pack_forget()
         self.unC.pack_forget()
@@ -58,6 +60,7 @@ class Bootstrap():
         def on_close():
             self.options.pack_forget()
             self.pack_all()
+            self.is_in_option_menu = False
     
         def on_save():
             self.options.pack_forget()
@@ -68,8 +71,8 @@ class Bootstrap():
             self.bC.row = self.options.rowcolVar.get()
             if t_col != self.bC.col or t_row != self.bC.row:
                 self.bC.init_board(self.bC.col, self.bC.row)
+                self.bC.weight_table = generate_weight_table(self.bC.col, self.bC.row)
             self._update(None)
-            self.bC.weight_table = generate_weight_board(self.bC.col, self.bC.row)
             self.bC.show_vm_as = self.options.ShowVmVar.get()
 
             if self.options.ShowVmVar.get() == INVIS:
@@ -85,6 +88,7 @@ class Bootstrap():
             self.bC.redraw()
             if self.bC.show_vm_as == EVAL:
                 self.reset_eval_list()
+            self.is_in_option_menu = False
         
 
 
@@ -105,8 +109,8 @@ class Bootstrap():
         pass
 
     def update_side_canvas(self):
-        self.upC.b_counter['text'] = "Black: " + str(self.bC.get_pieces_left(B))
-        self.upC.w_counter['text'] = "White: " + str(self.bC.get_pieces_left(W))
+        self.upC.b_counter['text'] = "Black: " + str(self.bC.get_pieces_left(self.bC.array, B))
+        self.upC.w_counter['text'] = "White: " + str(self.bC.get_pieces_left(self.bC.array, W))
         if not self.bC.calculating:
             if self.bC.turn == B:
                 self.unC.hint['text'] = "Black to move..."
@@ -137,15 +141,17 @@ class Bootstrap():
             self.update_side_canvas()
 
     def undo(self, event=None):
-        self.bC.undo()
-        self.update_side_canvas()
+        if not self.bC.calculating and not self.bC.animating:
+            self.bC.undo()
+            self.update_side_canvas()
 
     def redo(self, event=None):
-        self.bC.redo()
-        self.update_side_canvas()
+        if not self.bC.calculating and not self.bC.animating:
+            self.bC.redo()
+            self.update_side_canvas()
 
     def app_clicked(self, event):
-        if not self.bC.animating and not self.bC.calculating:
+        if not self.bC.animating and not self.bC.calculating and not self.is_in_option_menu:
             if(self.bC.clicked(event)):                          
                 self.bC.switch_turn()
                 self.bC.valid_moves = self.bC.get_valid_moves(self.bC.array, self.bC.turn)
@@ -215,9 +221,9 @@ class Bootstrap():
 
     def get_game_state(self):
         msg = ""
-        if self.bC.get_pieces_left(B) > self.bC.get_pieces_left(W):
+        if self.bC.get_pieces_left(self.bC.array, B) > self.bC.get_pieces_left(self.bC.array, W):
             msg = "Black wins!"
-        elif self.bC.get_pieces_left(B) < self.bC.get_pieces_left(W):
+        elif self.bC.get_pieces_left(self.bC.array, B) < self.bC.get_pieces_left(self.bC.array, W):
             msg = "White wins!"
         else:
             msg = "Draw!"
@@ -288,6 +294,7 @@ class Bootstrap():
         self.bC.update()
         self.bC.counter = 0
         self.bC.eval_list = self.minimax(self.bC.array, self.bC.depth, True, self.bC.turn, -INF, INF)[1]
+        print(self.bC.eval_list)
         # self.update()
         self.bC.calculating = False
             

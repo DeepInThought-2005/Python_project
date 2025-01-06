@@ -17,7 +17,8 @@ class BoardCanvas(tk.Canvas):
         self.valid_move_color = "#8B7D6B"
         self.col = 8
         self.row = 8
-        self.weight_table = generate_weight_board(self.col, self.row)
+        self.weight_table = generate_weight_table(self.col, self.row)
+        print(self.weight_table)
         self.mode = HUMAN_HUMAN
         self.play_as = B
         self.depth = 3
@@ -105,7 +106,7 @@ class BoardCanvas(tk.Canvas):
                     self.animating = False
                 else:
                     self.apply_move(self.array, x, y, self.turn)
-                    
+
                 self.print_board(self.array)
 
         return to_flip
@@ -163,14 +164,14 @@ class BoardCanvas(tk.Canvas):
         self.draw_pieces()
         self.draw_valid_moves(self.valid_moves)
 
-    def get_pieces_left(self, color=None):
+    def get_pieces_left(self, board, color=None):
         result = 0
         if color == B:
-            result = len(self.get_all_pos(B))
+            result = len(self.get_all_pos(board, B))
         elif color == W:
-            result = len(self.get_all_pos(W))
+            result = len(self.get_all_pos(board, W))
         else:
-            result = len(self.get_all_pos(W))+len(self.get_all_pos(B))
+            result = len(self.get_all_pos(board, W))+len(self.get_all_pos(board, B))
         
         return result
 
@@ -242,12 +243,12 @@ class BoardCanvas(tk.Canvas):
 
         self.animating = False
 
-    def get_all_pos(self, color):
+    def get_all_pos(self, board, color):
         #returns all (color) pieces positions
         pos = []
         for i in range(self.row):
             for j in range(self.col):
-                if self.array[j][i] == color:
+                if board[j][i] == color:
                     pos.append((j, i))
         return pos
     
@@ -438,61 +439,142 @@ class BoardCanvas(tk.Canvas):
     #     return player_score - opponent_score
 
 
-    def evaluate(self, board, turn):
-        opponent = B if turn == W else W
-        piece_count_score = 0
-        mobility_score = 0
+    def evaluate(self, board, player):
+        opponent = B if player == W else W
+
+        # Determine the game phase
+        total_pieces = sum(cell != EMPTY for row in board for cell in row)
+        if total_pieces < 20:
+            phase = "early"
+        elif total_pieces < self.col*self.row - self.depth - 2:
+            phase = "mid"
+        else:
+            phase = "late"
+
+        # Assign dynamic weights based on the phase
+        weights = {
+            "early": {"mobility": 100, "piece_count": 5, "weight_table": 20, "corner_score": 90, "danger_score":120},
+            "mid": {"mobility": 80, "piece_count": 10, "weight_table": 40, "corner_score": 150, "danger_score":100},
+            "late": {"mobility": 10, "piece_count": 80, "weight_table": 5, "corner_score": 50, "danger_score":50},
+        }
+        weight = weights[phase]
+
+        def get_mobility_score():
+            player_mobility = len(self.get_valid_moves(board, player))
+            opponent_mobility = len(self.get_valid_moves(board, opponent))
+            return player_mobility - opponent_mobility
+
+
+        corners = [(0, 0), (self.col-1, 0), (0, self.row-1), (self.col-1, self.row-1)]
         corner_score = 0
-        edge_score = 0
-        worst_tile_score = 0
-        
-        piece_count_player = 0
-        piece_count_opponent = 0
-        
-        corners = [(0, 0), (0, self.row - 1), (self.col - 1, 0), (self.col-1, self.row-1)]
-        edge = (0, self.col-1, self.row-1)
-        worst_tile = [(1, 1), (1, self.row-2), (self.col-2, 1), (self.col-2, self.row-2)]
-        
+        weight_table_score_player = 0
+        weight_table_score_opponent = 0
+
         for row in range(self.row):
             for col in range(self.col):
-                if board[col][row] == turn:
-                    piece_count_player += 1
+                if board[col][row] == player:
+                    weight_table_score_player += self.weight_table[col][row]
+
                     if (col, row) in corners:
                         corner_score += 25
-                    if (col, row) in worst_tile:
-                        worst_tile_score -= 25
-                    if col in edge or row in edge:
-                        edge_score += 15
 
-                    # Here we could add more complex stability calculations
                 elif board[col][row] == opponent:
-                    piece_count_opponent += 1
+                    weight_table_score_opponent += self.weight_table[col][row]
+
                     if (col, row) in corners:
                         corner_score -= 25
-                    if (col, row) in worst_tile:
-                        worst_tile_score += 25
-                    if col in edge or row in edge:
-                        edge_score -= 15
-        
-        piece_count_score = piece_count_player - piece_count_opponent
-        
-        # Calculate mobility
-        legal_moves_player = len(self.get_valid_moves(board, turn))
-        legal_moves_opponent = len(self.get_valid_moves(board, opponent))
-        mobility_score = legal_moves_opponent - legal_moves_player
+
+        # hard code 12 danger positions
+
+        danger_score = 0
+        c = self.col
+        r = self.row
+        danger_pos = [[(0, 0), (1, 0), (1, 1), (0, 1)], # top left
+                      [(c-1, 0), (c-2, 0), (c-2, 1), (c-1, 1)],  # top right
+                      [(0, r-1), (0, r-2), (1, r-2), (1, r-1)],  # bottom left
+                      [(c-1, r-1), (c-1, r-2), (c-2, r-2), (c-2, r-1)]]  # bottom right
+
+        for dir in danger_pos:  # only if corner is empty
+            if board[dir[0][0]][dir[0][1]] == EMPTY:
+                for i in range(1, 3):
+                    if board[dir[i][0]][dir[i][1]] == player:
+                        danger_score -= 15
+                    elif board[dir[i][0]][dir[i][1]] == opponent:
+                        danger_score += 15
+
+        def calculate_stability(board, player):
+            """
+            Calculates the stability of the pieces for the given player on the Othello board.
+
+            Args:
+                board (list[list[int]]): 2D list representing the board state.
+                                        Each cell is either EMPTY, player, or opponent.
+                player (int): The identifier for the current player (e.g., 1 or 2).
+
+            Returns:
+                int: The number of stable pieces for the given player.
+            """
+            rows = self.row
+            cols = self.col
+            stable = [[False for _ in range(cols)] for _ in range(rows)]  # To track stable pieces
+            directions = [(-1, 0), (1, 0), (0, -1), (0, 1), (-1, -1), (1, 1), (-1, 1), (1, -1)]
+
+            def is_edge_stable(x, y, dr, dc):
+                """
+                Checks if a sequence of pieces along an edge is stable in a given direction.
+                """
+                i, j = x, y
+                while 0 <= i < rows and 0 <= j < cols:
+                    if board[i][j] != player:
+                        return False
+                    i += dr
+                    j += dc
+                return True
+
+            # Check corners for stability
+            for x, y in corners:
+                if board[x][y] == player:
+                    stable[x][y] = True
+
+            # Propagate stability from edges
+            for x in range(rows):
+                for y in range(cols):
+                    if board[x][y] == player and not stable[x][y]:
+                        for dr, dc in directions:
+                            nr, nc = x + dr, y + dc
+                            if 0 <= nr < rows and 0 <= nc < cols and stable[nr][nc]:
+                                if is_edge_stable(x, y, dr, dc):
+                                    stable[x][y] = True
+                                    break
+
+            # Count stable pieces
+            stable_count = sum(sum(1 for c in range(cols) if stable[r][c]) for r in range(rows))
+            return stable_count
         
 
-        total_discs = sum(cell != EMPTY for row in board for cell in row)
-        if total_discs >= self.depth: #opening
-            score = (piece_count_score * 1) + (mobility_score * 150) + (corner_score * 300) + (edge_score * 150) + (worst_tile_score*100)
-        if total_discs <= self.depth: #endgame
-            score = piece_count_score * 25
+        # Calculate scores
+        mobility_score = get_mobility_score()
+        weight_table_score = weight_table_score_player - weight_table_score_opponent
+        piece_count_score = self.get_pieces_left(board, player) - self.get_pieces_left(board, opponent)
+        stability_score =  calculate_stability(board, player) - calculate_stability(board, opponent)
 
-        # Combining all the scores with different weights
-        
-        return score
+        # Combine scores using weights
+        total_score = (
+            weight["mobility"] * mobility_score+
+            weight["piece_count"] * piece_count_score+
+            weight["weight_table"] * weight_table_score+
+            weight["corner_score"] * corner_score+
+            weight["danger_score"] * danger_score
+        )
+        print("----")
+        print(weight["mobility"]* mobility_score)
+        print(weight["piece_count"] * piece_count_score)
+        print(weight["weight_table"] * weight_table_score)
+        print(weight["corner_score"] * corner_score)
+        print(weight["danger_score"] * danger_score)
+        print("----")
 
-
+        return total_score
     
     def AI_move(self):
         to_flip = False
@@ -505,12 +587,6 @@ class BoardCanvas(tk.Canvas):
                 if value > max_value:
                     max_value = value
                     best_key = key
-            # else:
-            #     min_value = INF
-            #     for key, value in self.eval_list.items():
-            #         if value < min_value:
-            #             min_value = value
-            #             best_key = key
 
             to_flip = self.is_valid_move(self.array, self.turn, best_key[0], best_key[1])
             if to_flip:

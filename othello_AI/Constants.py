@@ -23,6 +23,7 @@ EMPTY = -1
 INF = 999999
 CALCULATING = 'calculating' # for main.py sidecanvas
 
+
 # Weight table for the board positions
 '''
 WEIGHT_TABLE = [
@@ -36,24 +37,37 @@ WEIGHT_TABLE = [
     [100, -20, 10,  5,  5, 10, -20, 100]
 ]
 '''
-def generate_weight_board(rows=8, cols=8):
-    weight_board = [[0] * cols for _ in range(rows)]
 
-    # Assign weights
-    for row in range(rows):
-        for col in range(cols):
-            if (row == 0 or row == rows - 1) and (col == 0 or col == cols - 1):
-                weight_board[row][col] = 100  # Corners
-            elif (row == 0 or row == rows - 1) and (col == 1 or col == cols - 2):
-                weight_board[row][col] = -20  # Adjacent to corners on edges
-            elif (row == 1 or row == rows - 2) and (col == 0 or col == cols - 1):
-                weight_board[row][col] = -20  # Adjacent to corners on edges
-            elif (row == 0 or row == rows - 1) or (col == 0 or col == cols - 1):
-                weight_board[row][col] = 10  # Other edge positions
-            elif (row == 1 or row == rows - 2) and (col == 1 or col == cols - 2):
-                weight_board[row][col] = 5  # Adjacent to edges but not corners
-            else:
-                weight_board[row][col] = 1  # Center and other positions
+def generate_weight_table(rows=8, cols=8):
+    if rows == 8 and cols == 8: # University of washington respresents
+        weight_board = [
+            [20, -3, 11, 8, 8, 11, -3, 20],
+            [-3, -7, -4, 1, 1, -4, -7, -3],
+            [11, -4, 2, 2, 2, 2, -4, 11],
+            [8, 1, 2, -3, -3, 2, 1, 8],
+            [8, 1, 2, -3, -3, 2, 1, 8],
+            [11, -4, 2, 2, 2, 2, -4, 11],
+            [-3, -7, -4, 1, 1, -4, -7, -3],
+            [20, -3, 11, 8, 8, 11, -3, 20]
+    ]
+    else:
+        weight_board = [[0] * cols for _ in range(rows)]
+
+        # Assign weights
+        for row in range(rows):
+            for col in range(cols):
+                if (row == 0 or row == rows - 1) and (col == 0 or col == cols - 1):
+                    weight_board[row][col] = 20  # Corners
+                elif (row == 0 or row == rows - 1) and (col == 1 or col == cols - 2):
+                    weight_board[row][col] = -3  # Adjacent to corners on edges
+                elif (row == 1 or row == rows - 2) and (col == 0 or col == cols - 1):
+                    weight_board[row][col] = -3  # Adjacent to corners on edges
+                elif (row == 0 or row == rows - 1) or (col == 0 or col == cols - 1):
+                    weight_board[row][col] = 8  # Other edge positions
+                elif (row == 1 or row == rows - 2) and (col == 1 or col == cols - 2):
+                    weight_board[row][col] = -7  # Adjacent to edges but not corners
+                else:
+                    weight_board[row][col] = 2  # Center and other positions
 
     return weight_board
 
