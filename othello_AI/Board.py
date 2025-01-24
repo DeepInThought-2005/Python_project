@@ -453,9 +453,9 @@ class BoardCanvas(tk.Canvas):
 
         # Assign dynamic weights based on the phase
         weights = {
-            "early": {"mobility": 100, "piece_count": 5, "weight_table": 20, "corner_score": 90, "danger_score":120},
-            "mid": {"mobility": 80, "piece_count": 10, "weight_table": 40, "corner_score": 150, "danger_score":100},
-            "late": {"mobility": 10, "piece_count": 80, "weight_table": 5, "corner_score": 50, "danger_score":50},
+            "early": {"mobility": 100, "piece_count": 5,  "weight_table": 20, "corner_score": 90,  "danger_score":120, "stability_score":15},
+            "mid":   {"mobility": 80,  "piece_count": 10, "weight_table": 40, "corner_score": 150, "danger_score":100, "stability_score":35},
+            "late":  {"mobility": 10,  "piece_count": 80, "weight_table": 5,  "corner_score": 50,  "danger_score":50,  "stability_score":70},
         }
         weight = weights[phase]
 

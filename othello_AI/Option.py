@@ -13,6 +13,7 @@ class Option(tk.Canvas):
         self.show_vm_as = (CAPTURABLE, DOT, INVIS)
         self.mode = ("HUMAN-HUMAN", "HUMAN-AI")
         self.depth = (1, 2, 3, 4, 5, 6)
+        self.it_limit = (1000, 2000, 5000, 10000, 20000, 50000, "Infinite")
 
         self.row = 0
         self.col = 0
@@ -28,7 +29,7 @@ class Option(tk.Canvas):
 
 
         # show_valid_move
-        self.ShowVmVar = tk.StringVar() # is show valid move?
+        self.ShowVmVar = tk.StringVar() 
         self.ShowVmVar.set(CAPTURABLE)
         self.is_show_vm_f = tk.Frame(self)
         self.is_show_vm_l = tk.Label(self.is_show_vm_f, text="Show valid move as: ")
@@ -37,7 +38,7 @@ class Option(tk.Canvas):
         self.is_show_vm_o.grid(column=1, row=0, sticky = tk.W)
 
         # is_animating
-        self.isAnimeVar = tk.StringVar() # is animating
+        self.isAnimeVar = tk.StringVar() 
         self.isAnimeVar.set("on")
         self.is_anime_f = tk.Frame(self)
         self.is_anime_l = tk.Label(self.is_anime_f, text="Animating flip: ")
@@ -46,7 +47,7 @@ class Option(tk.Canvas):
         self.is_anime_o.grid(column=1, row=0, sticky = tk.W)
 
         # mode
-        self.modeVar = tk.StringVar() # is show valid move?
+        self.modeVar = tk.StringVar()
         self.modeVar.set("HUMAN-HUMAN")
         self.mode_f = tk.Frame(self)
         self.mode_l = tk.Label(self.mode_f, text="Game mode: ")
@@ -55,13 +56,22 @@ class Option(tk.Canvas):
         self.mode_o.grid(column=1, row=0, sticky = tk.W)
 
         # AI_depth
-        self.depthVar = tk.IntVar() # is show valid move?
+        self.depthVar = tk.IntVar() 
         self.depthVar.set(3)
         self.depth_f = tk.Frame(self)
         self.depth_l = tk.Label(self.depth_f, text="Algorithm depth: ")
         self.depth_l.grid(column=0, row=0, sticky = tk.E)
         self.depth_o = tk.OptionMenu(self.depth_f, self.depthVar, *self.depth)
         self.depth_o.grid(column=1, row=0, sticky = tk.W)
+
+        # iteration_limit
+        self.it_limitVar = tk.StringVar()
+        self.it_limitVar.set(10000)
+        self.it_limit_f = tk.Frame(self)
+        self.it_limit_l = tk.Label(self.it_limit_f, text="Iteration limit: ")
+        self.it_limit_l.grid(column=0, row=0, sticky = tk.E)
+        self.it_limit_o = tk.OptionMenu(self.it_limit_f, self.it_limitVar, *self.it_limit)
+        self.it_limit_o.grid(column=1, row=0, sticky = tk.W)
 
 
         self.cancel_b = tk.Button(self, text="Cancel")
@@ -85,6 +95,7 @@ class Option(tk.Canvas):
         self.is_anime_f.pack(pady=10)
         self.mode_f.pack(pady=10)
         self.depth_f.pack(pady=10)
+        self.it_limit_f.pack(pady=10)
         self.cancel_b.pack(pady=10)
         self.save_b.pack(pady=10)
 

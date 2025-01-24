@@ -16,6 +16,7 @@ class Bootstrap():
         self.r.title("Othello - noobs better stay away!")
         self.mode = EDIT_MODE
         self.is_in_option_menu = False
+        self.iteration_limit = 10000
         self.bC = BoardCanvas(app)
         self.upC = UpperCanvas(app)
         self.unC = UnderCanvas(app)
@@ -85,6 +86,14 @@ class Bootstrap():
 
             self.bC.mode = self.options.modeVar.get()
             self.bC.depth = self.options.depthVar.get()
+
+            it_limit = self.options.it_limitVar.get()
+            if it_limit == "Infinite":
+                self.iteration_limit = INF
+            else:
+                self.iteration_limit = int(it_limit)
+
+
             self.bC.redraw()
             if self.bC.show_vm_as == EVAL:
                 self.reset_eval_list()
@@ -247,10 +256,14 @@ class Bootstrap():
         # self.unC.draw_pieces_left(self.bC.pieces_left[B], self.bC.col, self.bC.row)
         # self.upC.draw_pieces_left(self.bC.pieces_left[W], self.bC.col, self.bC.row)
 
-    def minimax(self, board, depth, maximizing_player, turn, alpha, beta):
+    def minimax(self, board, depth, maximizing_player, turn, alpha, beta, iteration_limit):
         self.bC.counter+=1
         self.unC.hint['text'] = "Calculated " + str(self.bC.counter) + " positions..."
         self.unC.update()
+
+        if self.bC.counter >= iteration_limit:
+            return self.bC.evaluate(board, turn), []
+
         if turn == W:
             opponent = B
         else:
@@ -269,7 +282,7 @@ class Bootstrap():
             max_eval = -INF
             for move in valid_moves:
                 new_board = self.bC.apply_move([row[:] for row in board], move[0], move[1], turn)
-                eval, _ = self.minimax(new_board, depth - 1, False, turn, alpha, beta)
+                eval, _ = self.minimax(new_board, depth - 1, False, turn, alpha, beta, self.iteration_limit)
                 move_evaluations[move] = eval
                 max_eval = max(max_eval, eval)
                 alpha = max(alpha, eval)
@@ -280,7 +293,7 @@ class Bootstrap():
             min_eval = INF
             for move in valid_moves:
                 new_board = self.bC.apply_move([row[:] for row in board], move[0], move[1], opponent)
-                eval, _ = self.minimax(new_board, depth - 1, True, turn, alpha, beta)
+                eval, _ = self.minimax(new_board, depth - 1, True, turn, alpha, beta, self.iteration_limit)
                 move_evaluations[move] = eval
                 min_eval = min(min_eval, eval)
                 beta = min(beta, eval)
@@ -293,7 +306,7 @@ class Bootstrap():
         self.bC.calculating = True
         self.bC.update()
         self.bC.counter = 0
-        self.bC.eval_list = self.minimax(self.bC.array, self.bC.depth, True, self.bC.turn, -INF, INF)[1]
+        self.bC.eval_list = self.minimax(self.bC.array, self.bC.depth, True, self.bC.turn, -INF, INF, self.iteration_limit)[1]
         print(self.bC.eval_list)
         # self.update()
         self.bC.calculating = False
