@@ -1,4 +1,4 @@
-from tkinter.constants import MOVETO
+import asyncio
 from pieces import *
 import random
 from board import *
@@ -61,9 +61,10 @@ class Control:
 
         return best_move
 
-    def make_move(self, start, end):
+    async def make_move(self, start, end, promotion=None):
         '''
         returns tuple including start position and end position
+        promotion: piece sign to promote to without asking (used for the AI)
         '''
         s_x, s_y = start
         e_x, e_y = end
@@ -91,7 +92,7 @@ class Control:
 
             if end[1] == 7 or end[1] == 0:
                 if not self.board.board[end[0]][end[1]].promoted:
-                    self.board.board[end[0]][end[1]].promote(start[0], start[1])
+                    await self.board.board[end[0]][end[1]].promote(start[0], start[1], promotion)
                     if not self.board.board[end[0]][end[1]].promoted:
                         self.board.board[s_x][s_y] = self.board.board[e_x][e_y]
                         self.board.board[e_x][e_y] = pro_square
@@ -109,7 +110,7 @@ class Control:
 
         self.board.print_board()
 
-    def game_over(self, win, w, h, tie=False, stalemate=False):
+    async def game_over(self, win, w, h, tie=False, stalemate=False):
         #START_END.play()
         self.board.draw(win)
         self.board.set_every_pos()
@@ -123,17 +124,16 @@ class Control:
             text = text_font.render(self.turn + ' stalemates!', 1, red)
         else:
             text = text_font.render(self.turn + ' checkmates!', 1, red)
-        hint = hint_font.render("click anywhere to continue...", 1, red)
+        hint = hint_font.render("click to play again", 1, red)
         win.blit(text, (w // 2 - text.get_width() // 2, h // 2 - text.get_height() // 2))
         win.blit(hint, (w // 2 - hint.get_width() // 2, h // 4 * 3 - text.get_height() // 2))
         pygame.display.update()
         clicked = False
         while not clicked:
             for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    quit()
                 if event.type == pygame.MOUSEBUTTONUP:
                     clicked = True
+            await asyncio.sleep(0)
     
     def print_board(self, board):
         for i in range(8):

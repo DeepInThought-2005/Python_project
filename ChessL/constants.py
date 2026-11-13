@@ -1,4 +1,14 @@
 import os
+from functools import lru_cache
+
+import pygame
+
+
+@lru_cache(maxsize=None)
+def load_image(path, size):
+    # Decoding and scaling every frame is too slow in the browser, so cache both.
+    return pygame.transform.scale(pygame.image.load(path), size)
+
 
 DEF_WIDTH = DEF_HEIGHT = 800
 

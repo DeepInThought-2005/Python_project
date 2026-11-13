@@ -1,3 +1,6 @@
+import asyncio
+import platform
+import sys
 import pygame
 import os
 from bird import *
@@ -5,11 +8,11 @@ from constants import *
 from pipe import *
 from base import *
 pygame.font.init()
+FONT = pygame.font.SysFont("comicsansms", 40)
 
 def draw_window(win, bird, pipes, base, score):
     win.blit(BG, (0, 0))
-    font = pygame.font.SysFont("comicsansms", 40)
-    text = font.render("Score: " + str(score), 1, (0, 0, 0))
+    text = FONT.render("Score: " + str(score), 1, (0, 0, 0))
     bird.update()
     bird.draw(win)
     for pipe in pipes:
@@ -20,7 +23,15 @@ def draw_window(win, bird, pipes, base, score):
     base.draw(win)
     pygame.display.update()
 
-def main():
+
+def fit_browser_canvas():
+    # pygbag sizes the page canvas before the game opens its window; resize it
+    # again so the game keeps its own aspect ratio in the browser.
+    if sys.platform == "emscripten":
+        platform.window.window_resize()
+
+
+async def play():
     score = 0
     pipes = [Pipe()]
     win = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -53,8 +64,7 @@ def main():
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                run = False
-                pygame.quit()
+                return False
 
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
@@ -70,6 +80,16 @@ def main():
 
         draw_window(win, bird, pipes, base, score)
         pipe_count += 1
-    main()
+        await asyncio.sleep(0)  # let the browser run between frames
+    return True
 
-main()
+
+async def main():
+    pygame.display.set_mode((WIDTH, HEIGHT))
+    fit_browser_canvas()
+    # Each crash starts a new round; closing the window ends the game.
+    while await play():
+        pass
+
+
+asyncio.run(main())

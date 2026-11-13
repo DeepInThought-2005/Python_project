@@ -8,8 +8,7 @@ class Board:
         self.repetition = 0
         self.board = [[0] * 8 for _ in range(8)]
         self.boardstyle = BOARDSTYLE
-        self.board_img = pygame.transform.scale(pygame.image.load(
-            os.path.join("Image/Boards", BOARDSTYLE+FILETYPE)), (DEF_WIDTH, DEF_HEIGHT))
+        self.board_img = load_image(os.path.join("Image/Boards", BOARDSTYLE+FILETYPE), (DEF_WIDTH, DEF_HEIGHT))
         self.generate_initial()
 
     def load_FEN(self, fen):
@@ -68,8 +67,7 @@ class Board:
                 break
 
     def resize(self, w, h):
-        self.board_img = self.board_img = pygame.transform.scale(pygame.image.load(
-            os.path.join("Image/Boards", BOARDSTYLE+FILETYPE)), (w, h))
+        self.board_img = load_image(os.path.join("Image/Boards", BOARDSTYLE+FILETYPE), (w, h))
 
     def resize_pieces(self, w, h):
         for i in range(8):

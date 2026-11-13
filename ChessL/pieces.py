@@ -1,6 +1,11 @@
+import asyncio
 import pygame
-import tkinter as tk
 from constants import *
+
+PROMOTION_IMAGES = {
+    WHITE: {"Q": WHITE_QUEEN, "R": WHITE_ROOK, "B": WHITE_BISHOP, "N": WHITE_KNIGHT},
+    BLACK: {"Q": BLACK_QUEEN, "R": BLACK_ROOK, "B": BLACK_BISHOP, "N": BLACK_KNIGHT},
+}
 
 class Piece:
     def __init__(self, col, row, color, sign):
@@ -35,8 +40,7 @@ class Piece:
             elif sign == 'P':
                 self.img_type = WHITE_PAWN
 
-        self.img = pygame.image.load(self.img_type)
-        self.img = pygame.transform.scale(self.img, (self.w, self.h))
+        self.img = load_image(self.img_type, (self.w, self.h))
 
         self.sign = sign
         self.col = col
@@ -50,7 +54,7 @@ class Piece:
     def resize(self, w, h):
         self.w = w // 8
         self.h = h // 8
-        self.img = pygame.transform.scale(pygame.image.load(self.img_type), (w // 8, h // 8))
+        self.img = load_image(self.img_type, (w // 8, h // 8))
         # self.set_pos()
 
     def change_turn(self, turn):
@@ -820,82 +824,42 @@ class Pawn(Piece):
                     return True
             return False
 
-    def promote(self, x, y):
-        # get window resolution
-        resolution = tk.Tk()
-        width = resolution.winfo_screenwidth()
-        height = resolution.winfo_screenheight()
-        resolution.destroy()
-        # Create Tkinter window to choose the promotion
-        root = tk.Tk()
-        root.title("Promote")
-        root.geometry('110x400+' + str(width // 2 - 55) + '+' + str(height // 2 - 200))
-        root.resizable(width=False, height=False)
-        def close_window():
-            if not self.promoted:
-                self.row = y
-                self.col = x
+    async def promote(self, x, y, choice=None):
+        # (x, y) is where the pawn came from. Without a choice, the player picks a
+        # piece from a column drawn over the board; clicking elsewhere cancels the move.
+        if choice is None:
+            choice = await self.choose_promotion()
+        if choice is None:
+            self.col, self.row = x, y
             self.set_pos()
-            root.destroy()
-            return False
-                
-        root.protocol("WM_DELETE_WINDOW", close_window)
-        Font = ("Arial", 15)
-        Width = 6
-        Height = 3
-        def Queening():
-            self.sign = 'Q'
-            if self.color == BLACK:
-                self.img_type = BLACK_QUEEN
-            else:
-                self.img_type = WHITE_QUEEN
-            self.img = pygame.image.load(self.img_type)
-            self.img = pygame.transform.scale(self.img, (self.w, self.h))
-            self.promoted = True
-            root.destroy()
-        
-        def Rooking():
-            self.sign = 'R'
-            if self.color == BLACK:
-                self.img_type = BLACK_ROOK
-            else:
-                self.img_type = WHITE_ROOK
-            self.img = pygame.image.load(self.img_type)
-            self.img = pygame.transform.scale(self.img, (self.w, self.h))
-            self.promoted = True
-            root.destroy()
-            
-        def Bishoping():
-            self.sign = 'B'
-            if self.color == BLACK:
-                self.img_type = BLACK_BISHOP
-            else:
-                self.img_type = WHITE_BISHOP
-            self.img = pygame.image.load(self.img_type)
-            self.img = pygame.transform.scale(self.img, (self.w, self.h))
-            self.promoted = True
-            root.destroy()
-            
-        def Knighting():
-            self.sign = 'N'
-            if self.color == BLACK:
-                self.img_type = BLACK_KNIGHT
-            else:
-                self.img_type = WHITE_KNIGHT
-            self.img = pygame.image.load(self.img_type)
-            self.img = pygame.transform.scale(self.img, (self.w, self.h))
-            self.promoted = True
-            root.destroy()
-            
-        buttonQ = tk.Button(root, text="Queen", height=Height, width=Width, font=Font, command=Queening)
-        buttonR = tk.Button(root, text="Rook", height=Height, width=Width, font=Font, command=Rooking)
-        buttonB = tk.Button(root, text="Bishop", height=Height, width=Width, font=Font, command=Bishoping)
-        buttonN = tk.Button(root, text="Knight", height=Height, width=Width, font=Font, command=Knighting)
-        buttonQ.grid(column=0, row=1)
-        buttonR.grid(column=0, row=2)
-        buttonB.grid(column=0, row=3)
-        buttonN.grid(column=0, row=4)
-        root.mainloop()
+            return
+        self.sign = choice
+        self.img_type = PROMOTION_IMAGES[self.color][choice]
+        self.img = load_image(self.img_type, (self.w, self.h))
+        self.promoted = True
+
+    async def choose_promotion(self):
+        win = pygame.display.get_surface()
+        w, h = win.get_width() // 8, win.get_height() // 8
+        step = 1 if self.row == 0 else -1
+        options = [(sign, (self.col, self.row + i * step)) for i, sign in enumerate("QRBN")]
+        shade = pygame.Surface(win.get_size(), pygame.SRCALPHA)
+        shade.fill((0, 0, 0, 120))
+        win.blit(shade, (0, 0))
+        for sign, (c, r) in options:
+            pygame.draw.rect(win, (245, 245, 245), (c * w, r * h, w, h))
+            pygame.draw.rect(win, (60, 60, 60), (c * w, r * h, w, h), 2)
+            win.blit(load_image(PROMOTION_IMAGES[self.color][sign], (w, h)), (c * w, r * h))
+        pygame.display.update()
+        while True:
+            for event in pygame.event.get():
+                if event.type == pygame.MOUSEBUTTONUP and event.button == 1:
+                    c, r = event.pos[0] // w, event.pos[1] // h
+                    for sign, square in options:
+                        if square == (c, r):
+                            return sign
+                    return None
+            await asyncio.sleep(0)
     
         
     

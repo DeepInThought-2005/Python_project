@@ -1,5 +1,7 @@
+import asyncio
+import platform
+import sys
 import pygame
-from pygame.constants import VIDEORESIZE
 from constants import *
 from board import *
 from control import *
@@ -26,6 +28,14 @@ def draw_window(win, control, w, h):
     pygame.display.update()
 
 
+
+def fit_browser_canvas():
+    # pygbag sizes the page canvas before the game opens its window; resize it
+    # again so the game keeps its own aspect ratio in the browser.
+    if sys.platform == "emscripten":
+        platform.window.window_resize()
+
+
 def get_square_onclick(m_x, m_y, w, h):
     for j in range(8):
         for i in range(8):
@@ -33,7 +43,7 @@ def get_square_onclick(m_x, m_y, w, h):
                 return i, j
 
 
-def main():
+async def main():
     def todo_after_move():
         control.valid_moves = []
         control.board.set_every_coord()
@@ -42,10 +52,11 @@ def main():
         control.board.unselectall()
     win = pygame.display.set_mode((DEF_WIDTH, DEF_HEIGHT), pygame.RESIZABLE)
     pygame.display.set_caption("ChessL")
+    fit_browser_canvas()
     board = Board()
-    board.load_FEN("4k3/8/8/8/8/8/8/3KNB2 w")
     control = Control(board)
     positions = [] # for threefold repetition
+    restart = False
     win_width = 0
     win_height = 0
     game_mode = HUMAN_AI
@@ -53,23 +64,28 @@ def main():
     selected = False
     run = True
     while run:
+        if restart:
+            # A finished game starts over from the initial position.
+            board = Board()
+            control = Control(board)
+            positions = []
+            restart = False
         win_width = win.get_width()
         win_height = win.get_height()
         draw_window(win, control, win_width, win_height)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                run = False
-                pygame.quit()
+                return
 
             if event.type == pygame.VIDEORESIZE:
                 control.board.set_every_pos()
 
             if game_mode == AI_AI:
                 computer_move = control.AI_move()
-                control.make_move(computer_move[0], computer_move[1])
+                await control.make_move(computer_move[0], computer_move[1], "Q")
                 control.change_turn()
                 computer_move = control.AI_move()
-                control.make_move(computer_move[0], computer_move[1])
+                await control.make_move(computer_move[0], computer_move[1], "Q")
                 control.change_turn()
                 control.board.set_every_pos()
 
@@ -105,19 +121,19 @@ def main():
                         if bo[tx][ty] != 0 and bo[tx][ty].color == control.turn:
                             if (x, y) in control.get_valid_moves(tx, ty):
                                 if game_mode == HUMAN_HUMAN:
-                                    control.make_move((tx, ty), (x, y))
+                                    await control.make_move((tx, ty), (x, y))
                                     control.change_turn()
                                     control.board.moves_50 += 0.5
                                         
 
                                 elif game_mode == HUMAN_AI:
-                                    control.make_move((tx, ty), (x, y))
+                                    await control.make_move((tx, ty), (x, y))
                                     control.change_turn()
                                     draw_window(win, control, win_width, win_height)
                                     computer_move = control.AI_move()
                                     if computer_move:
                                         control.get_valid_moves(computer_move[0][0], computer_move[0][1])
-                                        control.make_move(computer_move[0], computer_move[1])
+                                        await control.make_move(computer_move[0], computer_move[1], "Q")
                                         todo_after_move()
                                         control.change_turn()
                                         control.board.moves_50 += 1
@@ -130,8 +146,9 @@ def main():
                                 print("repeated ", control.repeated)
                                 
                                 if control.repeated == 3:
-                                    control.game_over(win, win_width, win_height, tie=True)
+                                    await control.game_over(win, win_width, win_height, tie=True)
                                     control.gameoverd = True
+                                    restart = True
                                 else:
                                     control.repeated = 0
 
@@ -146,14 +163,17 @@ def main():
                     control.change_turn()
                     result = control.check_gameover(control.turn)
                     if result == CHECKMATE:
-                        control.game_over(win, win_width, win_height)
+                        await control.game_over(win, win_width, win_height)
                         control.gameoverd = True
+                        restart = True
                     elif result == STALEMATE:
-                        control.game_over(win, win_width, win_height, stalemate=True)
+                        await control.game_over(win, win_width, win_height, stalemate=True)
                         control.gameoverd = True
+                        restart = True
                     elif result == DRAW:
-                        control.game_over(win, win_width, win_height, tie=True)
+                        await control.game_over(win, win_width, win_height, tie=True)
                         control.gameoverd = True
+                        restart = True
                     control.change_turn()
 
 
@@ -161,7 +181,7 @@ def main():
                     if control.selected_pos:
                         print(x, y, control.selected_pos)
                         control.board.board[x][y].change_pos((x, y))
-                if event.type != VIDEORESIZE:
+                if event.type != pygame.VIDEORESIZE:
                     control.board.unselectall()
                     control.selected_pos = ()
                     control.valid_moves = []
@@ -185,6 +205,8 @@ def main():
 
         
         clock.tick(60)
+        await asyncio.sleep(0)  # let the browser run between frames
 
 
-main()
+if __name__ == "__main__":
+    asyncio.run(main())
